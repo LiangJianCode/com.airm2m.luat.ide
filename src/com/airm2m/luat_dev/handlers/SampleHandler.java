@@ -68,9 +68,9 @@ public class SampleHandler extends AbstractHandler {
 		//DirectoryDialog dialog = new DirectoryDialog(window.getShell());
 		//String  selectPath = dialog.open() ;
 		//ComBin combin=new ComBin("RDA");
-		DownLoad downLoad = new DownLoad();
-		downLoad.start();
-		//OriginalDownload Od=new OriginalDownload();
+		//DownLoad downLoad = new DownLoad();
+		//downLoad.start();
+		OriginalDownload Od=new OriginalDownload();
 		//log logs=new log();
 		//logs.start();
 

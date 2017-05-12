@@ -72,7 +72,8 @@ public class OriginalDownload {
 	byte[] Transfer2 				   				={0x13};
 	byte[] Transfer3 				   				={0x5c};
 	static byte[] BACK_DATA=null;
-	int section=32*1024;
+	int section=64*1024;
+	int FLASH_ERARE_SIZE=64*1024;
     private final static String[] hexDigits = { "0", "1", "2", "3", "4", "5",
             "6", "7", "8", "9", "A", "B", "C", "D", "E", "F" };
 	byte[] SYNC_BACK={0x11,0x09,0x09,0x10};
@@ -90,7 +91,7 @@ public class OriginalDownload {
 			e.printStackTrace();
 		}
 		try {
-			start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod","e:\\test.lod");
+			start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod","e:\\test1.lod");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -105,7 +106,8 @@ public class OriginalDownload {
 	}
 	private  boolean enter_host_mode()
 	{
-		int reset_cause_value = read_value(CMD_RD_DWORD, RESET_CAUSE_REG,2000);
+		/*int reset_cause_value = read_value(CMD_RD_DWORD, RESET_CAUSE_REG,2000);
+		console.Print("读到的reset_cause_value"+reset_cause_value);
 		int boot_mode = (reset_cause_value & 0x3fffff) << 16;
 		int out_reg_data =  ((boot_mode | (1 << 1) | (1 << 3) ) << 16) & 0xffffffff;
         write_value(CMD_WR_DWORD,0xa1a25000,  new byte[] {(byte)0x66,0x00,0x00,0x00});
@@ -137,7 +139,25 @@ public class OriginalDownload {
         	 }
         }
         return false;
-
+        */
+		try {
+			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x2a,0x00});
+			Thread.sleep(200);
+			write_value(CMD_WR_REG,0x00,  new byte[] {(byte)0x05});
+			Thread.sleep(600);
+			write_value(CMD_WR_REG,0x03,  new byte[] {(byte)0x80});
+			Thread.sleep(100);
+			write_value(CMD_WR_REG,0x01,  new byte[] {(byte)0x02});
+			Thread.sleep(100);
+			write_value(CMD_WR_REG,0x05,  new byte[] {(byte)0xfd});
+			Thread.sleep(100);
+			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x2a,0x00});
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
         //self._cmdbuf_index = 0
 	}
 	private  boolean download_ramrun(List<byte[]> ramList)
@@ -228,6 +248,8 @@ public class OriginalDownload {
 		ByteBuffer cellheadbuff=ByteBuffer.allocate(fcsbuf.size()*12).order(ByteOrder.LITTLE_ENDIAN);
 		for(int i=0;i<fcsbuf.size();i++)
 		{
+				
+			console.Print("fcsclr:"+fcsbuf.get(i));
 			cellheadbuff.putInt(base_add+(i*section)).putInt(section).putInt(fcsbuf.get(i));
 		}
 		return cellheadbuff.array();
@@ -249,48 +271,50 @@ public class OriginalDownload {
 		int bufsize=fpc_access.get(5);
 		boolean wait=false;
 		byte[] data=combinAndRead(path);
-		int DownLoadNum=(data.length)/bufsize;
 		HOST_MAX_PACKET=bufsize;
 		int addr=TEMP_SCRIPT_DATA_BASE;
-        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr,fpc_access_ram.get(rambuf_index%3),HOST_MAX_PACKET,0));
-        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_ERASE_SECTOR);
-		for(int i=0;i<DownLoadNum;i++)
+		int esr_mor=0;
+		if((data.length)%FLASH_ERARE_SIZE!=0)
+			esr_mor=1;
+
+		for(int j=0;j<(data.length)/FLASH_ERARE_SIZE+esr_mor;j++)
 		{
-			console.Print("下载脚本:"+i);
-			int end_Num = HOST_MAX_PACKET*i+HOST_MAX_PACKET;
-            write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), Arrays.copyOfRange(data, i*HOST_MAX_PACKET,end_Num));
+			int esr_Num = FLASH_ERARE_SIZE*j+FLASH_ERARE_SIZE;
+	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr+FLASH_ERARE_SIZE*j,fpc_access_ram.get(rambuf_index%3),FLASH_ERARE_SIZE,0));
+	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_ERASE_SECTOR);	        
+	        int lod_mor=0;
+        	if((data.length-(j*FLASH_ERARE_SIZE)>HOST_MAX_PACKET))
+				lod_mor=1;
+	        for(int i=j*2;i<j*2+1+lod_mor;i++)
+	        {
+	        	console.Print("下载脚本:"+i);
+				int lod_Num = HOST_MAX_PACKET*i+HOST_MAX_PACKET;
+				if(lod_Num>data.length)
+					lod_Num=data.length;
+	            write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), Arrays.copyOfRange(data, i*HOST_MAX_PACKET,lod_Num));
+	            if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+		            		return false;
+	            cmdbuf_index ^= 0x01;
+	            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr,fpc_access_ram.get(rambuf_index%3),HOST_MAX_PACKET,0));
+	            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_PROGRAM);
+	            rambuf_index += 1;
+	            wait=true;
+	            addr=addr+HOST_MAX_PACKET;
+	        }
             if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-            		return false;
+        		return false;
             cmdbuf_index ^= 0x01;
-            rambuf_index += 1;
-            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr,fpc_access_ram.get(rambuf_index%3),HOST_MAX_PACKET,0));
-            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_PROGRAM);
-           
-            wait=true;
-            addr=addr+HOST_MAX_PACKET;
-            
 		}
-		if(data.length-DownLoadNum*HOST_MAX_PACKET>0)
-		{
-			console.Print("剩余包下载");
-			write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), Arrays.copyOfRange(data, DownLoadNum*HOST_MAX_PACKET,data.length));
-            if(wait)
-            	if(!wait_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-            		return false;
-		}
-		cmdbuf_index ^= 0x01;
-        rambuf_index += 1;
+		console.Print("下载脚本基本完成");
 		byte[] fcsend=fcsclr(data,TEMP_SCRIPT_DATA_BASE);
+		write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), fcsend);
         write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,0,fpc_access_ram.get(rambuf_index%3),(fcsend.length)/12,0));
         write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_CHECK_FCS);
-		write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), fcsend);
+		
+        cmdbuf_index ^= 0x01;
     	if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
     		return false;
     	
-        cmdbuf_index ^= 0x01;
-        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-    		return false;
-
         cmdbuf_index ^= 0x01;
         if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
     		return false;
@@ -548,7 +572,7 @@ public class OriginalDownload {
 	{
 		long startSendTime = System.currentTimeMillis();
 		console.Print("等待回复");
-		System.out.println("等待回复");
+		//System.out.println("等待回复");
 		BACK_DATA=null;
 		while(true)
 		{
@@ -604,7 +628,7 @@ public class OriginalDownload {
 		if(timer>0)
 		{
 			if(wait_read_back(read_id,timer))
-			{	
+			{
 					return ByteArryToInt_Little(BACK_DATA,1,BACK_DATA.length-1);
 			}
 		}
@@ -615,7 +639,7 @@ public class OriginalDownload {
 	private  void write(byte[] data)
 	{
 		console.Print("发送数据为:");
-		System.out.println("发送数据为:"+data.length);
+		//System.out.println("发送数据为:"+data.length);
 		console.printHexString(data);
 		SendCmd(DownPort,data);
 	}
@@ -635,7 +659,7 @@ public class OriginalDownload {
 	private boolean SEND_DL_SYNC()
 	{
 		console.Print("等待握手");
-		System.out.println("等待握手");
+		//System.out.println("等待握手");
 		int i=0;
 		for(i=0;i<20;i++)
 		{
@@ -657,7 +681,7 @@ public class OriginalDownload {
 	}
 	public  boolean start(String RamrunpPath,String ScrpPt) throws IOException
 	{
-		DownPort=OpenDownLoadPort("COM3");
+		DownPort=OpenDownLoadPort("COM19");
 		if(SEND_DL_SYNC())
 		{
 			chip_xfbp();
@@ -746,7 +770,7 @@ public class OriginalDownload {
         int ram_timing = read_value(CMD_RD_DWORD, boot_sector_struct_addr+8,2000);
         console.Print("config_ebc_ram3="+ram_timing);
         int ram_mode = read_value(CMD_RD_DWORD, boot_sector_struct_addr+12,2000);
-        console.Print("config_ebc_ram4="+ram_mode);
+        console.Print("config_ebc_ram4="+ram_mode); 
         
         write_value(CMD_WR_DWORD, 0x01A0440C, IntToByte_Little(ram_timing));
         write_value(CMD_WR_DWORD, 0x01A04418, IntToByte_Little(ram_mode));
@@ -864,8 +888,8 @@ public class OriginalDownload {
 							//JOptionPane.showMessageDialog(null, "读取数据过程中未获取到有效数据！请检查设备或程序！", "错误", JOptionPane.INFORMATION_MESSAGE);
 						}
 						else {
-							//console.Print("监听到数据的长度的数据长度~~~~~~~~~~~~~~:"+data.length);
-							//console.printHexString(data);
+							console.Print("监听到数据的长度的数据长度~~~~~~~~~~~~~~:"+data.length);
+							console.printHexString(data);
 							int i=0;
 							byte[] ss=new byte[1];
 							boolean trem_flag=false;
@@ -919,7 +943,7 @@ public class OriginalDownload {
 		SerialPort tempPort = null;
     	try {
     		console.Print("尝试打开串口"+port);
-    		System.out.println("尝试打开串口");
+    		//System.out.println("尝试打开串口");
 			tempPort=SerialTool.openPortFlow(port);
 		} catch (SerialPortParameterFailure e) {
 			// TODO Auto-generated catch block
@@ -946,12 +970,12 @@ public class OriginalDownload {
 			e.printStackTrace();
 			return null;
 		}
-    	System.out.println("打开串口成功");
+    	//System.out.println("打开串口成功");
     	console.Print("打开串口成功");
     	try {
     		console.Print("添加对串口"+tempPort+"监听");
 			SerialTool.addListener(tempPort, new SerialListener());
-			System.out.println("添加对串口"+tempPort+"监听");
+			//System.out.println("添加对串口"+tempPort+"监听");
 		} catch (TooManyListeners e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

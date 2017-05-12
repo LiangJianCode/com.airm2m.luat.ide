@@ -58,7 +58,7 @@ public class log extends Thread{
 		}
 		return prop;
 	}
-	public log()
+	public log() 
 	{
 	}
 	private void handleOldPort()

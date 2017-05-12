@@ -21,7 +21,7 @@ public class ShowConsole {
 	MessageConsole console = null;  
 	MessageConsoleStream consoleStream = null;  
 	IConsoleManager consoleManager = null;  
-	SimpleDateFormat sf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	SimpleDateFormat sf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss|SSS");
 	final String CONSOLE_NAME = "Luat Board Trace"; 
 	FileOutputStream out = null;
 	String log_name=null;
@@ -99,6 +99,7 @@ public class ShowConsole {
 	public void  Print(String message)
 	{
 		printMessage(sf.format(new Date())+"  "+message);
+		System.out.println(sf.format(new Date())+"  "+message);
 	}
     public  void printHexString(byte[] b)
     {

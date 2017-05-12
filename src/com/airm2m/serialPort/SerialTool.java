@@ -136,8 +136,13 @@ public class SerialTool {
                     //设置一下串口的波特率等参数
                     //serialPort.setEndOfInputChar((byte) 0);
                 	//serialPort.SetXonXoffChar((byte)0x11,(byte) 0x13);
-                    serialPort.setSerialPortParams(921600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+                    //serialPort.setSerialPortParams(921600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+                    //serialPort.close();
+                   // commPort = portIdentifier.open(portName, 2000);
+                   // serialPort = (SerialPort) commPort;
                     serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_XONXOFF_IN | SerialPort.FLOWCONTROL_XONXOFF_OUT);
+                    serialPort.setSerialPortParams(921600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+                    //
                 } catch (UnsupportedCommOperationException e) {
                 	throw new SerialPortParameterFailure();
                 }
@@ -284,7 +289,7 @@ public class SerialTool {
             port.notifyOnDataAvailable(true);
             
           //设置当通信中断时唤醒中断线程
-            port.notifyOnBreakInterrupt(true);
+            //port.notifyOnBreakInterrupt(true);
 
         } catch (TooManyListenersException e) {
         	throw new TooManyListeners();
