@@ -80,7 +80,7 @@ public class OriginalDownload {
 	SerialPort DownPort=null;
 	byte read_id=0;
 	int TEMP_SCRIPT_DATA_BASE=0x002A0000;
-	public OriginalDownload()
+	public OriginalDownload(String LodFile)
 	{
 		String path = null;
 		try {
@@ -91,7 +91,7 @@ public class OriginalDownload {
 			e.printStackTrace();
 		}
 		try {
-			start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod","e:\\test.lod");
+			start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod",LodFile);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -193,24 +193,15 @@ public class log extends Thread{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 String host=prop.getProperty("trace_host");
-		 String uart=prop.getProperty("trace_uart");
-		 if((host==null || host.equals("")) && (uart==null || uart.equals("")))
+		 String Port_Type=prop.getProperty("Port_Type");
+		 String Debug_port=prop.getProperty("Debug_port");
+		 if((Debug_port==null || Debug_port.equals("")) )
 		 {
 			 JOptionPane.showMessageDialog(null, "没有设置打印口", "错误", JOptionPane.INFORMATION_MESSAGE);
 			 return ;
 		 }
-		 
-		 if(host.length()>3)
-		 {
-			 RellPort=host;
-			 LOG_type="host";
-		 }
-		 else if(uart.length()>3)
-		 {
-			 RellPort=uart;
-			 LOG_type="uart";
-		 }
+		 LOG_type=Port_Type;
+		 RellPort=Debug_port;
 		if(RellPort!="")			
 		{
 			//thread_p.start();

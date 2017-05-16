@@ -36,6 +36,8 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -55,20 +57,24 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 class ShowConfig extends ApplicationWindow {
-	Combo combo_download;
-	Combo combo_trace_uart;
-	Combo combo_debug;
-	Combo combo_ActiveProject;
-	String combo_download_old="";
-	String combo_trace_uart_old="";
-	String combo_debug_old="";
-	String combo_ActiveProject_old="";
-	ArrayList<String> Allport1;
+	Combo combo_1;
+	Combo combo_2;
+	Combo combo_3;
+	Combo combo_4;
+	Combo combo_5;
+	Combo combo_6;
+	
+	String Plat_Type="";
+	String Debug_port="";
+	String Port_Type="";
+	String Active_Project="";
+	ArrayList<String> Allport;
 	ArrayList<String> ProjectList;
 	Properties prop;
 	String Work_cf;
 	FileOutputStream oFile = null;
 	ShowConfig consls;
+	ShowConsole consolew=null;
 	/**
 	 * Create the application window.
 	 */
@@ -100,9 +106,11 @@ class ShowConfig extends ApplicationWindow {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 combo_debug_old=prop1.getProperty("debug");
-		 combo_ActiveProject_old=prop1.getProperty("active_project");
-		 System.out.println("old_cfg"+combo_download_old+""+combo_trace_uart_old+""+combo_debug_old+""+combo_ActiveProject_old);
+		 Plat_Type=prop1.getProperty("Plat_Type");
+		 Debug_port=prop1.getProperty("Debug_port");
+		 Active_Project=prop1.getProperty("Active_Project");
+		 Port_Type=prop1.getProperty("Port_Type");
+		 consolew.Print("本地配置项：平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
 		 try {
 			in.close();
 			out.close();
@@ -112,12 +120,13 @@ class ShowConfig extends ApplicationWindow {
 		}
 	}
 	
-	public void AddStartMsg(ArrayList<String> allport,String WorkPath,ArrayList<String> projectList,ShowConfig consl)
+	public void AddStartMsg(ArrayList<String> allport,String WorkPath,ArrayList<String> projectList,ShowConfig consl,ShowConsole con)
 	{
-		  Allport1=allport;
+		  Allport=allport;
 		  Work_cf=WorkPath;
 		  ProjectList=projectList;
 		  consls=consl;
+		  consolew=con;
 		  getSet();
 	  	  prop= new Properties();     	
 		  try {
@@ -128,98 +137,32 @@ class ShowConfig extends ApplicationWindow {
 			}
     	  
 	}
-	/**
-	 * Create contents of the application window.
-	 * @param parent
-	 */
-	/*
-	@Override
-	protected Control createContents(Composite parent) {
-		Composite container = new Composite(parent, SWT.READ_ONLY);
+	private void closeUI(boolean result,String Plat_Type,String Debug_port,String Active_Project,String Port_Type)
+	{
+		if(result)
 		{
-			Group group = new Group(container, SWT.READ_ONLY);
-			group.setText("选择工程");
-			group.setBounds(0, 0, 434, 89);
-			{
-				combo_ActiveProject = new Combo(group, SWT.READ_ONLY);
-				int i=0;
-				for(i=0;i<ProjectList.size();i++)
-				{
-					combo_ActiveProject.add(ProjectList.get(i));
-				}
-				combo_ActiveProject.setBounds(137, 26, 138, 25);
-
-				if(combo_ActiveProject_old!=null)
-					combo_ActiveProject.setText(combo_ActiveProject_old);
+						 
+			prop.setProperty("Plat_Type",Plat_Type);
+			prop.setProperty("Debug_port",Debug_port);
+			prop.setProperty("Active_Project",Active_Project);
+			prop.setProperty("Port_Type",Port_Type);
+			consolew.Print("当前配置项：平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
+			try {
+				prop.store(oFile, "change file");
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		}
-		{
-			Group grpHost = new Group(container, SWT.READ_ONLY);
-			grpHost.setText("选择下载调试口");
-			grpHost.setBounds(0, 93, 434, 89);
-			{
-					combo_debug = new Combo(grpHost, SWT.READ_ONLY);
-					int i=0;
-					for(i=0;i<Allport1.size();i++)
-					{
-						combo_debug.add(Allport1.get(i));
-					}
-					combo_debug.setBounds(137, 26, 138, 25);
-					if(combo_debug_old!=null)
-						combo_debug.setText(combo_debug_old);
-			}
-		}
-		
-		Group group = new Group(container, SWT.NONE);
-		group.setBounds(0, 181, 434, 40);
-		
-		Button button = new Button(group, SWT.NONE);
-		button.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				try {
-					oFile.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				consls.close();
-			}
-		});
-		button.setBounds(258, 10, 80, 27);
-		button.setText("\u53D6\u6D88");
-		
-		Button button_1 = new Button(group, SWT.NONE);
-		button_1.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				
-				prop.setProperty("debug",combo_debug.getText());
-				prop.setProperty("active_project", combo_ActiveProject.getText());
-				System.out.println("cfg~~~~："+combo_debug.getText()+"   "+combo_ActiveProject.getText());
-				try {
-					prop.store(oFile, "change file");
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				try {
-					oFile.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				consls.close();
-
-			}
-		});
-	    button_1.setBounds(344, 10, 80, 27);
-		button_1.setText("确定");
-		
-		return container;
-	}
-	*/
 	
+		try {
+			oFile.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		consls.close();
+	}
 	@Override
 	protected Control createContents(Composite parent) {
 		//shell = new Shell();
@@ -233,7 +176,13 @@ class ShowConfig extends ApplicationWindow {
 		
 		
 		TabFolder tabFolder = new TabFolder(composite_1, SWT.NONE);
-		tabFolder.setBounds(0, 0, 434, 261);
+		tabFolder.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				System.out.println("wssww");
+			}
+		});
+		tabFolder.setBounds(0, 0, 434, 310);
 		TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
 		tabItem.setText("AIR2XX");
 		
@@ -243,7 +192,7 @@ class ShowConfig extends ApplicationWindow {
 		tabItem.setControl(grpAirxx);
 		
 		TabFolder tabFolder_1 = new TabFolder(grpAirxx, SWT.NONE);
-		tabFolder_1.setBounds(10, 87, 416, 144);
+		tabFolder_1.setBounds(10, 87, 416, 183);
 		
 		TabItem tabItem_2 = new TabItem(tabFolder_1, SWT.NONE);
 		tabItem_2.setText("host");
@@ -256,8 +205,39 @@ class ShowConfig extends ApplicationWindow {
 		group_3.setText("选择端口");
 		group_3.setBounds(10, 33, 398, 71);
 		
-		Combo combo_1 = new Combo(group_3, SWT.NONE);
+	    combo_1 = new Combo(group_3, SWT.READ_ONLY);
+		for(int i=0;i<Allport.size();i++)
+		{
+			combo_1.add(Allport.get(i));
+		}
+		if(Debug_port!=null && Plat_Type.equals("RDA") && Port_Type.equals("host"))
+			{
+				combo_1.setText(Debug_port);
+			}
 		combo_1.setBounds(115, 24, 136, 25);
+		
+		Composite composite_3 = new Composite(grpHost, SWT.NONE);
+		composite_3.setBounds(0, 110, 408, 42);
+		
+		Button button_4 = new Button(composite_3, SWT.NONE);
+		button_4.setText("取消");
+		button_4.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				closeUI(false,null,null,null,null);
+			}
+		});
+		button_4.setBounds(241, 10, 80, 27);
+		
+		Button button_5 = new Button(composite_3, SWT.NONE);
+		button_5.setText("确定");
+		button_5.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				closeUI(true,"RDA",combo_1.getText(),combo_2.getText(),"host");
+			}
+		});
+		button_5.setBounds(327, 10, 80, 27);
 		
 		TabItem tabItem_3 = new TabItem(tabFolder_1, SWT.NONE);
 		tabItem_3.setText("uart");
@@ -270,18 +250,57 @@ class ShowConfig extends ApplicationWindow {
 		group_5.setText("选择端口");
 		group_5.setBounds(10, 33, 398, 71);
 		
-		Combo combo_3 = new Combo(group_5, SWT.NONE);
+	    combo_3 = new Combo(group_5, SWT.READ_ONLY);
+		for(int i=0;i<Allport.size();i++)
+		{
+			combo_3.add(Allport.get(i));
+		}
+		if(Debug_port!=null && Plat_Type.equals("RDA") && Port_Type.equals("uart"))
+			combo_3.setText(Debug_port);
 		combo_3.setBounds(115, 24, 136, 25);
+		
+		Composite composite_2 = new Composite(group, SWT.NONE);
+		composite_2.setBounds(0, 110, 408, 42);
+		
+		Button button_2 = new Button(composite_2, SWT.NONE);
+		button_2.setText("取消");
+		button_2.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				closeUI(false,null,null,null,null);
+			}
+		});
+		button_2.setBounds(241, 10, 80, 27);
+		
+		Button button_3 = new Button(composite_2, SWT.NONE);
+		button_3.setText("确定");
+		button_3.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				closeUI(true,"RDA",combo_3.getText(),combo_2.getText(),"uart");
+			}
+		});
+		button_3.setBounds(327, 10, 80, 27);
 		
 		Group group_4 = new Group(grpAirxx, SWT.NONE);
 		group_4.setBounds(10, 19, 398, 62);
 		group_4.setText("选择工程");
 		
-		Combo combo_2 = new Combo(group_4, SWT.NONE);
+		combo_2 = new Combo(group_4,SWT.READ_ONLY);
+		for(int i=0;i<ProjectList.size();i++)
+		{
+			combo_2.add(ProjectList.get(i));
+		}
+		if(Active_Project!=null && Plat_Type.equals("RDA"))
+			combo_2.setText(Active_Project);
 		combo_2.setBounds(128, 27, 136, 25);
 		
 		TabItem tabItem_1 = new TabItem(tabFolder, SWT.NONE);
+		//tabItem_1.addListener(eventType, listener);
+
+		
 		tabItem_1.setText("AIR8XX");
+		
 		
 		Group grpAirxx_1 = new Group(tabFolder, SWT.NONE);
 		grpAirxx_1.setText("AIR8XX\u914D\u7F6E\u5361");
@@ -289,33 +308,53 @@ class ShowConfig extends ApplicationWindow {
 		
 		Group group_2 = new Group(grpAirxx_1, SWT.NONE);
 		group_2.setText("下载和打印口");
-		group_2.setBounds(10, 110, 416, 121);
+		group_2.setBounds(10, 110, 416, 111);
 		
 		Group group_7 = new Group(group_2, SWT.NONE);
 		group_7.setText("选择端口");
-		group_7.setBounds(10, 21, 396, 100);
+		group_7.setBounds(10, 21, 396, 80);
 		
-		Combo combo_5 = new Combo(group_7, SWT.NONE);
+	    combo_5 = new Combo(group_7, SWT.READ_ONLY);
+		for(int i=0;i<Allport.size();i++)
+		{
+			combo_5.add(Allport.get(i));
+		}
+		if(Debug_port!=null && Plat_Type.equals("MTK"))
+			combo_5.setText(Debug_port);
 		combo_5.setBounds(133, 38, 136, 25);
 		
 		Group group_6 = new Group(grpAirxx_1, SWT.NONE);
 		group_6.setBounds(10, 27, 396, 77);
 		group_6.setText("选择工程");
 		
-		Combo combo_4 = new Combo(group_6, SWT.NONE);
+		Combo combo_4 = new Combo(group_6, SWT.READ_ONLY);
+		for(int i=0;i<ProjectList.size();i++)
+		{
+			combo_4.add(ProjectList.get(i));
+		}
+
+		if(Active_Project!=null && Plat_Type.equals("MTK"))
+			combo_4.setText(Active_Project);
 		combo_4.setBounds(144, 28, 136, 25);
 		
-		Composite composite = new Composite(composite_1, SWT.NONE);
-		composite.setBounds(0, 258, 434, 42);
+		Composite composite = new Composite(grpAirxx_1, SWT.NONE);
+		composite.setBounds(0, 227, 426, 42);
 		
 		Button button = new Button(composite, SWT.NONE);
 		button.setBounds(241, 10, 80, 27);
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				closeUI(false,null,null,null,null);
+			}
+		});
 		button.setText("取消");
 		
 		Button button_1 = new Button(composite, SWT.NONE);
 		button_1.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				closeUI(true,"MTK",combo_5.getText(),combo_4.getText(),"uart");
 			}
 		});
 		button_1.setBounds(327, 10, 80, 27);
@@ -461,7 +500,7 @@ class cfg_thread
 			allPort.add("");
 			console.Print("findport end");
 			ShowConfig window1 = new ShowConfig();
-			window1.AddStartMsg(allPort,workSpace,FileList,window1);
+			window1.AddStartMsg(allPort,workSpace,FileList,window1,console);
 			window1.setBlockOnOpen(true);
 			window1.open();
 			//Display.getCurrent().dispose();

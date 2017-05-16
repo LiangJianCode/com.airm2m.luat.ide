@@ -29,6 +29,7 @@ public class ComBin {
 	static boolean ComBINsTATES=false;
 	long CUSTM_MAX=536576;
 	long CUSTM_RES_MAX=81920;
+	String Press;
 	public char getUnsignedByte (long data){     
 		return (char) (data&0x0FF);
 		}
@@ -191,7 +192,7 @@ public class ComBin {
 		
 	}
 	
-	public  ComBin(String platform)
+	public  ComBin(String platform,boolean hostcompress)
 	{	
 		Properties prop = new Properties(); 
 		String work_space_path=Platform.getInstanceLocation().getURL().getPath();
@@ -210,7 +211,7 @@ public class ComBin {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		String TempPath=prop.getProperty("active_project");
+		String TempPath=prop.getProperty("Active_Project");
 		if(TempPath==null || TempPath.equals(""))
 		{
 			JOptionPane.showMessageDialog(null, "未选择工程，或未建立工程", "错误", JOptionPane.INFORMATION_MESSAGE);
@@ -228,7 +229,12 @@ public class ComBin {
 			if(FileList!=null)
 			{
 				WriteHead(file,FileList);
-				WriteBody(FileList,file,true);
+				boolean compress;
+				if(hostcompress)
+					compress=false;
+				else
+					compress=true;
+				WriteBody(FileList,file,compress);
 				file.close();
 				console.Print("合并完毕"+FileList.toString());
 			}
@@ -390,6 +396,10 @@ public class ComBin {
         }
 		
 	}
-	
+	public String Find_Scrip_Port(String ProPath)
+	{
+		
+		return "host";
+	}
 
 }

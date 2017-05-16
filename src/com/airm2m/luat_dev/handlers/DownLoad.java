@@ -177,79 +177,88 @@ public class DownLoad extends Thread{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		String coms=prop.getProperty("download");
-		if(coms== null || coms.equals(""))
+		String Port_Type=prop.getProperty("Port_Type");
+		if(Port_Type.equals("host"))
 		{
-			 JOptionPane.showMessageDialog(null, "没有设置下载口", "错误", JOptionPane.INFORMATION_MESSAGE);
-			DownlodState=false;
-			return ;
+			ComBin combin=new ComBin("RDA",true);
+			OriginalDownload Od=new OriginalDownload(workPath+"\\RdaCombin.bin");
 		}
-		console.Print("***********************开始下载***************************");
-		handleOldPort();
-		DownPort=OpenDownLoadPort(coms);
-		if(DownPort!=null)
+		else
 		{
-			if(SEND_DL_SYNC())      									 					//发送握手命令
-			{		
-				ComBin combin=new ComBin(PlatForm);
-				if(!combin.getCombinStatus())
-				{
-					SerialTool.closePort(DownPort);
-					DownlodState=false;
-					console.Print("***********************合并出错停止下载***************************");
-					return ;
-				}
-				if(PlatForm.equals("RDA"))
-				{
-					console.Print("开始下载文件"+workPath+"\\RdaCombin.bin");
-					if(! downlodFile(workPath+"\\RdaCombin.bin",RDA_LOD))
-						{
-							SerialTool.closePort(DownPort);
-							DownlodState=false;
-							console.Print("***********************下载失败***************************");
-							return ;
-						}
-				}
-				else if(PlatForm.equals("MTK"))
-				{
-					if(downlodFile(workPath+"\\CUSTOMER",MTK_LOD_1))
-						{
-							if(!downlodFile(workPath+"\\CUSTOMER_RES",MTK_LOD_2))
+			String coms=prop.getProperty("Debug_port");
+			if(coms== null || coms.equals(""))
+			{
+				 JOptionPane.showMessageDialog(null, "没有设置下载口", "错误", JOptionPane.INFORMATION_MESSAGE);
+				DownlodState=false;
+				return ;
+			}
+			console.Print("***********************开始下载***************************");
+			handleOldPort();
+			DownPort=OpenDownLoadPort(coms);
+			if(DownPort!=null)
+			{
+				if(SEND_DL_SYNC())      									 					//发送握手命令
+				{		
+					ComBin combin=new ComBin(PlatForm,false);
+					if(!combin.getCombinStatus())
+					{
+						SerialTool.closePort(DownPort);
+						DownlodState=false;
+						console.Print("***********************合并出错停止下载***************************");
+						return ;
+					}
+					if(PlatForm.equals("RDA"))
+					{
+						console.Print("开始下载文件"+workPath+"\\RdaCombin.bin");
+						if(! downlodFile(workPath+"\\RdaCombin.bin",RDA_LOD))
 							{
 								SerialTool.closePort(DownPort);
 								DownlodState=false;
 								console.Print("***********************下载失败***************************");
-								return;
+								return ;
 							}
-						}
-					else
+					}
+					else if(PlatForm.equals("MTK"))
 					{
-						SerialTool.closePort(DownPort);
-						DownlodState=false;
-						console.Print("***********************下载失败***************************");
+						if(downlodFile(workPath+"\\CUSTOMER",MTK_LOD_1))
+							{
+								if(!downlodFile(workPath+"\\CUSTOMER_RES",MTK_LOD_2))
+								{
+									SerialTool.closePort(DownPort);
+									DownlodState=false;
+									console.Print("***********************下载失败***************************");
+									return;
+								}
+							}
+						else
+						{
+							SerialTool.closePort(DownPort);
+							DownlodState=false;
+							console.Print("***********************下载失败***************************");
+						}
+						
 					}
 					
+					DownlodState=false;
+					console.Print("***********************下载结束***************************");
+					SerialTool.closePort(DownPort);
+					log logs=new log();
+					logs.start();
+				}
+				else
+				{
+					SerialTool.closePort(DownPort);
+					console.Print("***********************下载失败***************************");
 				}
 				
-				DownlodState=false;
-				console.Print("***********************下载结束***************************");
-				SerialTool.closePort(DownPort);
-				log logs=new log();
-				logs.start();
-			}
-			else
-			{
-				SerialTool.closePort(DownPort);
-				console.Print("***********************下载失败***************************");
 			}
 			
-		}
-		
-		try {
-			in.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			try {
+				in.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 					
 	}
