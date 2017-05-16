@@ -51,6 +51,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 
 class ShowConfig extends ApplicationWindow {
 	Combo combo_download;
@@ -130,6 +132,7 @@ class ShowConfig extends ApplicationWindow {
 	 * Create contents of the application window.
 	 * @param parent
 	 */
+	/*
 	@Override
 	protected Control createContents(Composite parent) {
 		Composite container = new Composite(parent, SWT.READ_ONLY);
@@ -213,23 +216,115 @@ class ShowConfig extends ApplicationWindow {
 	    button_1.setBounds(344, 10, 80, 27);
 		button_1.setText("确定");
 		
-		/*combo_ActiveProject = new Combo(group, SWT.READ_ONLY);
-		int i=0;
-		for(i=0;i<ProjectList.size();i++)
-		{
-			combo_ActiveProject.add(ProjectList.get(i));
-		}
-		combo_ActiveProject.setText("ee");
-		combo_ActiveProject.setBounds(62, 12, 178, 25);
-		*/
-		//if(combo_ActiveProject_old!=null)
-		
-		
-		//Label label = new Label(group, SWT.NONE);
-		//label.setBounds(0, 15, 56, 17);
-		//label.setText("\u9009\u62E9\u5DE5\u7A0B");
 		return container;
 	}
+	*/
+	
+	@Override
+	protected Control createContents(Composite parent) {
+		//shell = new Shell();
+		//shell.setSize(443, 343);
+		//shell.setText("SWT Application");
+		parent.setSize(443, 363);
+		
+		Composite composite_1 = new Composite(parent, SWT.NONE);
+		composite_1.setBounds(0, 0, 434, 310);
+
+		
+		
+		TabFolder tabFolder = new TabFolder(composite_1, SWT.NONE);
+		tabFolder.setBounds(0, 0, 434, 261);
+		TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
+		tabItem.setText("AIR2XX");
+		
+		Group grpAirxx = new Group(tabFolder, SWT.NONE);
+		//grpAirxx.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
+		grpAirxx.setText("AIR2XX配置卡");
+		tabItem.setControl(grpAirxx);
+		
+		TabFolder tabFolder_1 = new TabFolder(grpAirxx, SWT.NONE);
+		tabFolder_1.setBounds(10, 87, 416, 144);
+		
+		TabItem tabItem_2 = new TabItem(tabFolder_1, SWT.NONE);
+		tabItem_2.setText("host");
+		
+		Group grpHost = new Group(tabFolder_1, SWT.NONE);
+		grpHost.setText("host口下载和打印");
+		tabItem_2.setControl(grpHost);
+		
+		Group group_3 = new Group(grpHost, SWT.NONE);
+		group_3.setText("选择端口");
+		group_3.setBounds(10, 33, 398, 71);
+		
+		Combo combo_1 = new Combo(group_3, SWT.NONE);
+		combo_1.setBounds(115, 24, 136, 25);
+		
+		TabItem tabItem_3 = new TabItem(tabFolder_1, SWT.NONE);
+		tabItem_3.setText("uart");
+		
+		Group group = new Group(tabFolder_1, SWT.NONE);
+		group.setText("普通串口下载和打印");
+		tabItem_3.setControl(group);
+		
+		Group group_5 = new Group(group, SWT.NONE);
+		group_5.setText("选择端口");
+		group_5.setBounds(10, 33, 398, 71);
+		
+		Combo combo_3 = new Combo(group_5, SWT.NONE);
+		combo_3.setBounds(115, 24, 136, 25);
+		
+		Group group_4 = new Group(grpAirxx, SWT.NONE);
+		group_4.setBounds(10, 19, 398, 62);
+		group_4.setText("选择工程");
+		
+		Combo combo_2 = new Combo(group_4, SWT.NONE);
+		combo_2.setBounds(128, 27, 136, 25);
+		
+		TabItem tabItem_1 = new TabItem(tabFolder, SWT.NONE);
+		tabItem_1.setText("AIR8XX");
+		
+		Group grpAirxx_1 = new Group(tabFolder, SWT.NONE);
+		grpAirxx_1.setText("AIR8XX\u914D\u7F6E\u5361");
+		tabItem_1.setControl(grpAirxx_1);
+		
+		Group group_2 = new Group(grpAirxx_1, SWT.NONE);
+		group_2.setText("下载和打印口");
+		group_2.setBounds(10, 110, 416, 121);
+		
+		Group group_7 = new Group(group_2, SWT.NONE);
+		group_7.setText("选择端口");
+		group_7.setBounds(10, 21, 396, 100);
+		
+		Combo combo_5 = new Combo(group_7, SWT.NONE);
+		combo_5.setBounds(133, 38, 136, 25);
+		
+		Group group_6 = new Group(grpAirxx_1, SWT.NONE);
+		group_6.setBounds(10, 27, 396, 77);
+		group_6.setText("选择工程");
+		
+		Combo combo_4 = new Combo(group_6, SWT.NONE);
+		combo_4.setBounds(144, 28, 136, 25);
+		
+		Composite composite = new Composite(composite_1, SWT.NONE);
+		composite.setBounds(0, 258, 434, 42);
+		
+		Button button = new Button(composite, SWT.NONE);
+		button.setBounds(241, 10, 80, 27);
+		button.setText("取消");
+		
+		Button button_1 = new Button(composite, SWT.NONE);
+		button_1.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+			}
+		});
+		button_1.setBounds(327, 10, 80, 27);
+		button_1.setText("确定");
+		return button_1;
+	
+
+	}
+	
 	/**
 	 * Create the actions.
 	 */
@@ -290,6 +385,7 @@ class ShowConfig extends ApplicationWindow {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("LUAT CONFIG");
+		newShell.setSize(443, 343);
 	}
 
 	/**
