@@ -72,7 +72,7 @@ public class OriginalDownload {
 	byte[] Transfer2 				   				={0x13};
 	byte[] Transfer3 				   				={0x5c};
 	static byte[] BACK_DATA=null;
-	int section=64*1024;
+	int section=32*1024;
 	int FLASH_ERARE_SIZE=64*1024;
     private final static String[] hexDigits = { "0", "1", "2", "3", "4", "5",
             "6", "7", "8", "9", "A", "B", "C", "D", "E", "F" };
@@ -91,7 +91,7 @@ public class OriginalDownload {
 			e.printStackTrace();
 		}
 		try {
-			start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod","e:\\test1.lod");
+			start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod","e:\\test.lod");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -226,6 +226,8 @@ public class OriginalDownload {
 			ReadFile recv=new ReadFile(path);
 			downloadfile=new byte[recv.len()];
 			recv.read(downloadfile);
+			byte[] ss=new byte[256];
+			
 			return downloadfile;
 		//}
 		//else
@@ -248,9 +250,10 @@ public class OriginalDownload {
 		ByteBuffer cellheadbuff=ByteBuffer.allocate(fcsbuf.size()*12).order(ByteOrder.LITTLE_ENDIAN);
 		for(int i=0;i<fcsbuf.size();i++)
 		{
-				
-			console.Print("fcsclr:"+fcsbuf.get(i));
-			cellheadbuff.putInt(base_add+(i*section)).putInt(section).putInt(fcsbuf.get(i));
+			int lens=section;
+			if((i+1)==fcsbuf.size())
+				lens=data.length-(i*section);
+			cellheadbuff.putInt(base_add+(i*section)).putInt(lens).putInt(fcsbuf.get(i));
 		}
 		return cellheadbuff.array();
 	}
