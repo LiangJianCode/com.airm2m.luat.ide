@@ -55,11 +55,11 @@ import org.eclipse.swt.widgets.Shell;
 class ShowConfig extends ApplicationWindow {
 	Combo combo_download;
 	Combo combo_trace_uart;
-	Combo combo_trace_host;
+	Combo combo_debug;
 	Combo combo_ActiveProject;
 	String combo_download_old="";
 	String combo_trace_uart_old="";
-	String combo_trace_host_old="";
+	String combo_debug_old="";
 	String combo_ActiveProject_old="";
 	ArrayList<String> Allport1;
 	ArrayList<String> ProjectList;
@@ -98,11 +98,9 @@ class ShowConfig extends ApplicationWindow {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 combo_download_old=prop1.getProperty("download");
-		 combo_trace_uart_old=prop1.getProperty("trace_uart");
-		 combo_trace_host_old=prop1.getProperty("trace_host");
+		 combo_debug_old=prop1.getProperty("debug");
 		 combo_ActiveProject_old=prop1.getProperty("active_project");
-		 System.out.println("old_cfg"+combo_download_old+""+combo_trace_uart_old+""+combo_trace_host_old+""+combo_ActiveProject_old);
+		 System.out.println("old_cfg"+combo_download_old+""+combo_trace_uart_old+""+combo_debug_old+""+combo_ActiveProject_old);
 		 try {
 			in.close();
 			out.close();
@@ -137,66 +135,40 @@ class ShowConfig extends ApplicationWindow {
 		Composite container = new Composite(parent, SWT.READ_ONLY);
 		{
 			Group group = new Group(container, SWT.READ_ONLY);
-			group.setText("\u4E0B\u8F7D\u53E3");
-			group.setBounds(0, 0, 434, 69);
+			group.setText("选择工程");
+			group.setBounds(0, 0, 434, 89);
 			{
-				combo_download = new Combo(group, SWT.READ_ONLY);
+				combo_ActiveProject = new Combo(group, SWT.READ_ONLY);
 				int i=0;
-				for(i=0;i<Allport1.size();i++)
+				for(i=0;i<ProjectList.size();i++)
 				{
-					combo_download.add(Allport1.get(i));
+					combo_ActiveProject.add(ProjectList.get(i));
 				}
-				combo_download.setBounds(137, 26, 88, 25);
-				if(combo_download_old!=null)
-					combo_download.setText(combo_download_old);
+				combo_ActiveProject.setBounds(137, 26, 138, 25);
+
+				if(combo_ActiveProject_old!=null)
+					combo_ActiveProject.setText(combo_ActiveProject_old);
 			}
 		}
 		{
-			Group group = new Group(container, SWT.READ_ONLY);
-			group.setText("\u6253\u5370\u53E3");
-			group.setBounds(0, 73, 434, 112);
+			Group grpHost = new Group(container, SWT.READ_ONLY);
+			grpHost.setText("选择下载调试口");
+			grpHost.setBounds(0, 93, 434, 89);
 			{
-				Group grpHost = new Group(group, SWT.READ_ONLY);
-				grpHost.setText("下载调试\u53E3");
-				grpHost.setBounds(304, 18, 120, 84);
-				{
-					combo_trace_host = new Combo(grpHost, SWT.READ_ONLY);
+					combo_debug = new Combo(grpHost, SWT.READ_ONLY);
 					int i=0;
 					for(i=0;i<Allport1.size();i++)
 					{
-						combo_trace_host.add(Allport1.get(i));
+						combo_debug.add(Allport1.get(i));
 					}
-					combo_trace_host.setBounds(10, 29, 88, 25);
-					if(combo_trace_host_old!=null)
-						combo_trace_host.setText(combo_trace_host_old);
-				}
-			}
-			{
-				Group grpUart = new Group(group, SWT.READ_ONLY);
-				grpUart.setText("uart");
-				grpUart.setBounds(165, 18, 107, 84);
-				{
-
-					combo_trace_uart = new Combo(grpUart, SWT.READ_ONLY);
-					int i=0;
-					for(i=0;i<Allport1.size();i++)
-					{
-						combo_trace_uart.add(Allport1.get(i));
-					}
-					combo_trace_uart.setBounds(10, 31, 88, 25);
-					if(combo_trace_uart_old!=null)
-						combo_trace_uart.setText(combo_trace_uart_old);
-				}
-			}
-			{
-				Label lblUarthost = new Label(group, SWT.NONE);
-				lblUarthost.setBounds(10, 49, 132, 17);
-				lblUarthost.setText("uart\u548Chost\u53E3\u53EA\u80FD\u4E8C\u9009\u4E00");
+					combo_debug.setBounds(137, 26, 138, 25);
+					if(combo_debug_old!=null)
+						combo_debug.setText(combo_debug_old);
 			}
 		}
 		
 		Group group = new Group(container, SWT.NONE);
-		group.setBounds(0, 191, 434, 40);
+		group.setBounds(0, 181, 434, 40);
 		
 		Button button = new Button(group, SWT.NONE);
 		button.addSelectionListener(new SelectionAdapter() {
@@ -219,38 +191,29 @@ class ShowConfig extends ApplicationWindow {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
-				prop.setProperty("download",combo_download.getText() );
-				prop.setProperty("trace_uart", combo_trace_uart.getText());
-				prop.setProperty("trace_host",combo_trace_host.getText());
+				prop.setProperty("debug",combo_debug.getText());
 				prop.setProperty("active_project", combo_ActiveProject.getText());
-				System.out.println("cfg~~~~："+combo_download.getText()+"   "+combo_trace_uart.getText()+"  "+combo_ActiveProject.getText());
-				if(combo_trace_host.getText()!="" && combo_trace_uart.getText()!="")
-				{
-					JOptionPane.showMessageDialog(null, "uart和host只能选择一个", "错误", JOptionPane.INFORMATION_MESSAGE);
+				System.out.println("cfg~~~~："+combo_debug.getText()+"   "+combo_ActiveProject.getText());
+				try {
+					prop.store(oFile, "change file");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
-				else 
-				{
-					try {
-						prop.store(oFile, "change file");
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					try {
-						oFile.close();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					consls.close();
+				try {
+					oFile.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
+				consls.close();
 
 			}
 		});
-		button_1.setBounds(344, 10, 80, 27);
-		button_1.setText("\u786E\u5B9A");
+	    button_1.setBounds(344, 10, 80, 27);
+		button_1.setText("确定");
 		
-		combo_ActiveProject = new Combo(group, SWT.READ_ONLY);
+		/*combo_ActiveProject = new Combo(group, SWT.READ_ONLY);
 		int i=0;
 		for(i=0;i<ProjectList.size();i++)
 		{
@@ -258,12 +221,13 @@ class ShowConfig extends ApplicationWindow {
 		}
 		combo_ActiveProject.setText("ee");
 		combo_ActiveProject.setBounds(62, 12, 178, 25);
+		*/
 		//if(combo_ActiveProject_old!=null)
 		
 		
-		Label label = new Label(group, SWT.NONE);
-		label.setBounds(0, 15, 56, 17);
-		label.setText("\u9009\u62E9\u5DE5\u7A0B");
+		//Label label = new Label(group, SWT.NONE);
+		//label.setBounds(0, 15, 56, 17);
+		//label.setText("\u9009\u62E9\u5DE5\u7A0B");
 		return container;
 	}
 	/**
@@ -408,6 +372,7 @@ class cfg_thread
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 		console.Print("***********************配置结束***************************");
 	}
 }
