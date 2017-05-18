@@ -133,7 +133,7 @@ public class log extends Thread{
 				System.arraycopy(temprcvchaining, 0, all_dl_data, temprcvchainingFlag, datalen+4);
 				
 				byte[] ID={all_dl_data[3]};
-				//
+
 				if (Arrays.equals(ID,TRACE))
 				{
 					//console.printHexString(all_dl_data);
@@ -153,8 +153,11 @@ public class log extends Thread{
 				else
 				{
 					byte[] restart={(byte) 0xAD,0x00,0x06,(byte) 0xFF,0x00,0x57,0x00,0x00,0x00,(byte) 0xA8};
+					byte[] restart_hard={(byte) 0xAD,0x00,0x06,(byte) 0xFF,0x00,(byte) 0xff,(byte) 0xff,(byte) 0xff,(byte) 0xff,(byte) 0xff};
 					if(Arrays.equals(all_dl_data,restart))
 						console.Print("---------------------Detected system reset (0x57).--------------------");
+					else if(Arrays.equals(all_dl_data,restart_hard))
+						console.Print("---------------------Detected hardware reset (0xffffffff).--------------------");
 				}
 
 			}
@@ -206,6 +209,7 @@ public class log extends Thread{
 		{
 			//thread_p.start();
 			console.Print("***********************开始打印trace***************************");
+			console.Print("log协议:"+LOG_type);
 			LogPort=OpenDownLoadPort(RellPort);
 		}
 		

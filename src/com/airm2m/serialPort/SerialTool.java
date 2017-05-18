@@ -142,6 +142,7 @@ public class SerialTool {
                    // serialPort = (SerialPort) commPort;
                     serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_XONXOFF_IN | SerialPort.FLOWCONTROL_XONXOFF_OUT);
                     serialPort.setSerialPortParams(921600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+                    serialPort.setOutputBufferSize(4096);
                     //
                 } catch (UnsupportedCommOperationException e) {
                 	throw new SerialPortParameterFailure();

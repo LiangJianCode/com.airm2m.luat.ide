@@ -178,14 +178,15 @@ public class DownLoad extends Thread{
 			e.printStackTrace();
 		}
 		String Port_Type=prop.getProperty("Port_Type");
+		String coms=prop.getProperty("Debug_port");
 		if(Port_Type.equals("host"))
 		{
 			ComBin combin=new ComBin("RDA",true);
-			OriginalDownload Od=new OriginalDownload(workPath+"\\RdaCombin.bin");
+			OriginalDownload Od=new OriginalDownload(workPath+"\\RdaCombin.bin",coms);
 		}
 		else
 		{
-			String coms=prop.getProperty("Debug_port");
+			
 			if(coms== null || coms.equals(""))
 			{
 				 JOptionPane.showMessageDialog(null, "没有设置下载口", "错误", JOptionPane.INFORMATION_MESSAGE);

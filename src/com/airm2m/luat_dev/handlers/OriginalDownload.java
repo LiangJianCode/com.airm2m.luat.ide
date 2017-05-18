@@ -80,9 +80,11 @@ public class OriginalDownload {
 	SerialPort DownPort=null;
 	byte read_id=0;
 	int TEMP_SCRIPT_DATA_BASE=0x002A0000;
-	public OriginalDownload(String LodFile)
+	String comport;
+	public OriginalDownload(String LodFile,String com)
 	{
 		String path = null;
+		comport=com;
 		try {
 			 path=Platform.asLocalURL(Platform.getBundle("com.airm2m.luat_dev").getEntry("")).getFile();
 			
@@ -255,6 +257,8 @@ public class OriginalDownload {
 				lens=data.length-(i*section);
 			cellheadbuff.putInt(base_add+(i*section)).putInt(lens).putInt(fcsbuf.get(i));
 		}
+		console.Print("fcsclr~:");
+		console.printHexString(cellheadbuff.array());
 		return cellheadbuff.array();
 	}
 
@@ -277,29 +281,43 @@ public class OriginalDownload {
 		HOST_MAX_PACKET=bufsize;
 		int addr=TEMP_SCRIPT_DATA_BASE;
 		int esr_mor=0;
+		byte[] fcsend=fcsclr(data,TEMP_SCRIPT_DATA_BASE);
 		if((data.length)%FLASH_ERARE_SIZE!=0)
 			esr_mor=1;
 
 		for(int j=0;j<(data.length)/FLASH_ERARE_SIZE+esr_mor;j++)
 		{
 			int esr_Num = FLASH_ERARE_SIZE*j+FLASH_ERARE_SIZE;
-	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr+FLASH_ERARE_SIZE*j,fpc_access_ram.get(rambuf_index%3),FLASH_ERARE_SIZE,0));
-	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_ERASE_SECTOR);	        
+			console.Print("擦除flash:"+j+":地址:"+(addr+FLASH_ERARE_SIZE*j));
+	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,TEMP_SCRIPT_DATA_BASE+FLASH_ERARE_SIZE*j,fpc_access_ram.get(rambuf_index%3),FLASH_ERARE_SIZE,0));        
+	        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_ERASE_SECTOR);
+	        //cmdbuf_index ^= 0x01;
+	                
+	        //write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr+FLASH_ERARE_SIZE*j,0,0,0));
+	        //write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_ERASE_SECTOR);	 
 	        int lod_mor=0;
         	if((data.length-(j*FLASH_ERARE_SIZE)>HOST_MAX_PACKET))
 				lod_mor=1;
 	        for(int i=j*2;i<j*2+1+lod_mor;i++)
 	        {
 	        	console.Print("下载脚本:"+i);
+	        	int write_num=HOST_MAX_PACKET;
 				int lod_Num = HOST_MAX_PACKET*i+HOST_MAX_PACKET;
 				if(lod_Num>data.length)
+				{
 					lod_Num=data.length;
-	            write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), Arrays.copyOfRange(data, i*HOST_MAX_PACKET,lod_Num));
-	            if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+					write_num=data.length-(i*HOST_MAX_PACKET);
+				}
+				write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)),Arrays.copyOfRange(data, i*HOST_MAX_PACKET,lod_Num));
+	            //console.Print("press 3");
+            	//if(wait)
+		        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
 		            		return false;
-	            cmdbuf_index ^= 0x01;
-	            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr,fpc_access_ram.get(rambuf_index%3),HOST_MAX_PACKET,0));
-	            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_PROGRAM);
+		        cmdbuf_index ^= 0x01;
+		        	
+	            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr,fpc_access_ram.get(rambuf_index%3),write_num,ByteArryToInt_Little(fcsend,i*12+8,i*12+11)));
+	            write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_PROGRAM);
+	           
 	            rambuf_index += 1;
 	            wait=true;
 	            addr=addr+HOST_MAX_PACKET;
@@ -309,10 +327,10 @@ public class OriginalDownload {
             cmdbuf_index ^= 0x01;
 		}
 		console.Print("下载脚本基本完成");
-		byte[] fcsend=fcsclr(data,TEMP_SCRIPT_DATA_BASE);
+		
 		write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), fcsend);
         write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,0,fpc_access_ram.get(rambuf_index%3),(fcsend.length)/12,0));
-        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), FPC_CHECK_FCS);
+        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_CHECK_FCS);
 		
         cmdbuf_index ^= 0x01;
     	if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
@@ -641,9 +659,9 @@ public class OriginalDownload {
 	}
 	private  void write(byte[] data)
 	{
-		console.Print("发送数据为:");
+		//console.Print("发送数据为:");
 		//System.out.println("发送数据为:"+data.length);
-		console.printHexString(data);
+		//console.printHexString(data);
 		SendCmd(DownPort,data);
 	}
 	private void write_value(byte[] cmd,int address,byte[] value)
@@ -684,7 +702,7 @@ public class OriginalDownload {
 	}
 	public  boolean start(String RamrunpPath,String ScrpPt) throws IOException
 	{
-		DownPort=OpenDownLoadPort("COM19");
+		DownPort=OpenDownLoadPort(comport);
 		if(SEND_DL_SYNC())
 		{
 			chip_xfbp();
