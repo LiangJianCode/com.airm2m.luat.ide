@@ -162,42 +162,13 @@ class ShowConfig extends ApplicationWindow {
 			e1.printStackTrace();
 		}
 		consls.close();
-	}
-	@Override
-	protected Control createContents(Composite parent) {
-		//shell = new Shell();
-		//shell.setSize(443, 343);
-		//shell.setText("SWT Application");
-		parent.setSize(443, 363);
-		
-		Composite composite_1 = new Composite(parent, SWT.NONE);
-		composite_1.setBounds(0, 0, 434, 310);
-
-		
-		
-		TabFolder tabFolder = new TabFolder(composite_1, SWT.NONE);
-		tabFolder.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				System.out.println("wssww");
-			}
-		});
-		tabFolder.setBounds(0, 0, 434, 310);
-		TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
-		tabItem.setText("AIR2XX");
-		
-		Group grpAirxx = new Group(tabFolder, SWT.NONE);
-		//grpAirxx.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
-		grpAirxx.setText("AIR2XX配置卡");
-		tabItem.setControl(grpAirxx);
-		
-		TabFolder tabFolder_1 = new TabFolder(grpAirxx, SWT.NONE);
-		tabFolder_1.setBounds(10, 87, 416, 183);
-		
-		TabItem tabItem_2 = new TabItem(tabFolder_1, SWT.NONE);
+	}	
+	private void host_protocol(TabFolder parent)
+	{
+		TabItem tabItem_2 = new TabItem(parent, SWT.NONE);
 		tabItem_2.setText("host");
 		
-		Group grpHost = new Group(tabFolder_1, SWT.NONE);
+		Group grpHost = new Group(parent, SWT.NONE);
 		grpHost.setText("host口下载和打印");
 		tabItem_2.setControl(grpHost);
 		
@@ -238,11 +209,13 @@ class ShowConfig extends ApplicationWindow {
 			}
 		});
 		button_5.setBounds(327, 10, 80, 27);
-		
-		TabItem tabItem_3 = new TabItem(tabFolder_1, SWT.NONE);
+	}
+	private void port_protocol(TabFolder parent)
+	{
+		TabItem tabItem_3 = new TabItem(parent, SWT.NONE);
 		tabItem_3.setText("uart");
 		
-		Group group = new Group(tabFolder_1, SWT.NONE);
+		Group group = new Group(parent, SWT.NONE);
 		group.setText("普通串口下载和打印");
 		tabItem_3.setControl(group);
 		
@@ -281,6 +254,33 @@ class ShowConfig extends ApplicationWindow {
 			}
 		});
 		button_3.setBounds(327, 10, 80, 27);
+	}
+	private void air2xx(TabFolder parent)
+	{
+		
+
+		TabItem tabItem = new TabItem(parent, SWT.NONE);
+		tabItem.setText("AIR2XX");
+		
+		Group grpAirxx = new Group(parent, SWT.NONE);
+		//grpAirxx.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
+		//grpAirxx.setText("AIR2XX配置卡");
+		tabItem.setControl(grpAirxx);
+		
+		TabFolder tabFolder_1 = new TabFolder(grpAirxx, SWT.NONE);
+		tabFolder_1.setBounds(10, 97, 416, 183);
+		
+		if(Port_Type==null || Port_Type.equals("host"))
+		{
+			host_protocol(tabFolder_1);
+			port_protocol(tabFolder_1);
+		}
+		else
+		{	
+			port_protocol(tabFolder_1);
+			host_protocol(tabFolder_1);
+		}
+
 		
 		Group group_4 = new Group(grpAirxx, SWT.NONE);
 		group_4.setBounds(10, 19, 398, 62);
@@ -294,16 +294,20 @@ class ShowConfig extends ApplicationWindow {
 		if(Active_Project!=null && Plat_Type.equals("RDA"))
 			combo_2.setText(Active_Project);
 		combo_2.setBounds(128, 27, 136, 25);
-		
-		TabItem tabItem_1 = new TabItem(tabFolder, SWT.NONE);
+	}
+	
+	private void air8xx(TabFolder parent)
+	{
+
+		TabItem tabItem_1 = new TabItem(parent, SWT.NONE);
 		//tabItem_1.addListener(eventType, listener);
 
 		
 		tabItem_1.setText("AIR8XX");
 		
 		
-		Group grpAirxx_1 = new Group(tabFolder, SWT.NONE);
-		grpAirxx_1.setText("AIR8XX\u914D\u7F6E\u5361");
+		Group grpAirxx_1 = new Group(parent, SWT.NONE);
+		//grpAirxx_1.setText("AIR8XX\u914D\u7F6E\u5361");
 		tabItem_1.setControl(grpAirxx_1);
 		
 		Group group_2 = new Group(grpAirxx_1, SWT.NONE);
@@ -359,6 +363,29 @@ class ShowConfig extends ApplicationWindow {
 		});
 		button_1.setBounds(327, 10, 80, 27);
 		button_1.setText("确定");
+	}
+	@Override
+	protected Control createContents(Composite parent) {
+		//shell = new Shell();
+		//shell.setSize(443, 343);
+		//shell.setText("SWT Application");
+		parent.setSize(443, 363);
+		Button button_1=null;
+		Composite composite_1 = new Composite(parent, SWT.NONE);
+		composite_1.setBounds(0, 0, 434, 310);
+
+		TabFolder tabFolder = new TabFolder(composite_1, SWT.NONE);
+		tabFolder.setBounds(0, 0, 434, 310);
+		if(Plat_Type==null || Plat_Type.equals("RDA"))
+		{
+			air2xx(tabFolder);
+			air8xx(tabFolder);
+		}
+		else
+		{
+			air8xx(tabFolder);
+			air2xx(tabFolder);
+		}
 		return button_1;
 	
 
