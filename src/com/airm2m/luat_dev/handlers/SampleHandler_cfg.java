@@ -145,7 +145,7 @@ class ShowConfig extends ApplicationWindow {
 			prop.setProperty("Debug_port",Debug_port_new);
 			prop.setProperty("Active_Project",Active_Project_new);
 			prop.setProperty("Port_Type",Port_Type_new);
-			consolew.Print("当前配置项：平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
+			consolew.Print("当前配置项：平台"+Plat_Type_new+"   选择项目:"+Active_Project_new+"   通信端口:"+Debug_port_new+"   通信类型:"+Port_Type_new);
 			try {
 				prop.store(oFile, "change file");
 			} catch (IOException e1) {

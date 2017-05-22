@@ -80,6 +80,7 @@ public class OriginalDownload {
 	SerialPort DownPort=null;
 	byte read_id=0;
 	int SCRIPT_DATA_BASE=0x002A0000;
+	int SCRIPT_DATA_LEN=0;
 	String comport;
 	public OriginalDownload(String LodFile,String com)
 	{
@@ -263,7 +264,9 @@ public class OriginalDownload {
 	{
 		int base_addr = read_value(CMD_RD_DWORD, 0x88000004,2000);
 		SCRIPT_DATA_BASE=base_addr;
-		console.Print("读取脚本下载地址:"+base_addr);	
+		
+		SCRIPT_DATA_LEN=read_value(CMD_RD_DWORD, 0x88000008,2000);
+		console.Print("读取脚本下载区信息:起始地址"+base_addr+"区域大小:"+SCRIPT_DATA_LEN);	
 	}
 	private  boolean download_scr(String path)
 	{
@@ -300,7 +303,7 @@ public class OriginalDownload {
 				lod_mor=1;
 	        for(int i=j*2;i<j*2+1+lod_mor;i++)
 	        {
-	        	console.Print("下载脚本:"+i);
+	        	console.Print("下载脚本包:"+i);
 	        	int write_num=HOST_MAX_PACKET;
 				int lod_Num = HOST_MAX_PACKET*i+HOST_MAX_PACKET;
 				if(lod_Num>data.length)

@@ -179,9 +179,10 @@ public class DownLoad extends Thread{
 		}
 		String Port_Type=prop.getProperty("Port_Type");
 		String coms=prop.getProperty("Debug_port");
-		if(Port_Type.equals("host"))
+		if(Port_Type.equals("host"))                                              //进入host下载
 		{
-			ComBin combin=new ComBin("RDA",true);
+			ComBin combin=new ComBin();
+			combin.LodComBin("RDA",true);
 			OriginalDownload Od=new OriginalDownload(workPath+"\\RdaCombin.bin",coms);
 		}
 		else
@@ -200,7 +201,8 @@ public class DownLoad extends Thread{
 			{
 				if(SEND_DL_SYNC())      									 					//发送握手命令
 				{		
-					ComBin combin=new ComBin(PlatForm,false);
+					ComBin combin=new ComBin();
+					combin.LodComBin(PlatForm,false);
 					if(!combin.getCombinStatus())
 					{
 						SerialTool.closePort(DownPort);
@@ -504,8 +506,8 @@ public class DownLoad extends Thread{
 		    {
 	   			if((System.currentTimeMillis()-startSendTime)>40000)
 				   {
-	   				JOptionPane.showMessageDialog(null, "没有检测到握手回复,请确认有没有重新上电", "错误", JOptionPane.INFORMATION_MESSAGE);
-	   				return false;
+	   					JOptionPane.showMessageDialog(null, "没有检测到握手回复,请确认有没有重新上电", "错误", JOptionPane.INFORMATION_MESSAGE);
+	   					return false;
 				   }
 	   			else if((!DownlodState))
 	   			{
