@@ -229,7 +229,7 @@ public class ComBin {
 		}
 		
 	}
-	public void  Merge()
+	public void  Merge(boolean hostcompress)
 	{
 		getmsg();
 		String path=work_space_path+"\\"+TempPath;
@@ -245,7 +245,12 @@ public class ComBin {
 		if(FileList!=null)
 		{
 			WriteHead(file,FileList);
-			WriteBody(FileList,file,true);
+			boolean compress;
+			if(hostcompress)
+				compress=false;
+			else
+				compress=true;
+			WriteBody(FileList,file,compress);
 			file.close();
 			console.Print("合并完毕"+FileList.toString());
 		}

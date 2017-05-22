@@ -11,7 +11,7 @@ public class MergeBin extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		ComBin combin=new ComBin();
-		combin.Merge();
+		combin.Merge(true);
 		return null;
 	}
 }
