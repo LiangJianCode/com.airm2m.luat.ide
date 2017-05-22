@@ -137,16 +137,29 @@ class ShowConfig extends ApplicationWindow {
 			}
     	  
 	}
-	private void closeUI(boolean result,String Plat_Type,String Debug_port,String Active_Project,String Port_Type)
+	private void closeUI(boolean result,String Plat_Type_new,String Debug_port_new,String Active_Project_new,String Port_Type_new)
 	{
 		if(result)
+		{		 
+			prop.setProperty("Plat_Type",Plat_Type_new);
+			prop.setProperty("Debug_port",Debug_port_new);
+			prop.setProperty("Active_Project",Active_Project_new);
+			prop.setProperty("Port_Type",Port_Type_new);
+			consolew.Print("当前配置项：平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
+			try {
+				prop.store(oFile, "change file");
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		else
 		{
-						 
 			prop.setProperty("Plat_Type",Plat_Type);
 			prop.setProperty("Debug_port",Debug_port);
 			prop.setProperty("Active_Project",Active_Project);
 			prop.setProperty("Port_Type",Port_Type);
-			consolew.Print("当前配置项：平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
+			//consolew.Print("当前配置项：平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
 			try {
 				prop.store(oFile, "change file");
 			} catch (IOException e1) {
@@ -258,7 +271,7 @@ class ShowConfig extends ApplicationWindow {
 	private void air2xx(TabFolder parent)
 	{
 		
-
+		
 		TabItem tabItem = new TabItem(parent, SWT.NONE);
 		tabItem.setText("AIR2XX");
 		
