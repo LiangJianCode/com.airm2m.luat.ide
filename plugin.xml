@@ -37,6 +37,10 @@
             class="com.airm2m.luat_dev.handlers.taobao"
             commandId="com.airm2m.luat_dev.commands.taobao">
       </handler>
+      <handler
+            class="com.airm2m.luat_dev.handlers.MergeBin"
+            commandId="com.airm2m.luat_dev.commands.MergeBin">
+      </handler>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -96,6 +100,19 @@
                   icon="icons/wrench.png"
                   id="com.airm2m.luat_dev.toolbars.sampleCommand"
                   tooltip="config">
+            </command>
+         </toolbar>
+      </menuContribution>
+      
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="com.airm2m.luat_dev.toolbars.sampleToolbar">
+            <command
+                  commandId="com.airm2m.luat_dev.commands.MergeBin"
+                  icon="icons/Merge.png"
+                  id="com.airm2m.luat_dev.toolbars.MergeBin"
+                  tooltip="trace">
             </command>
          </toolbar>
       </menuContribution>
