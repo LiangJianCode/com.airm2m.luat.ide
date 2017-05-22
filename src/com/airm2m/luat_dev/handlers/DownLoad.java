@@ -148,17 +148,11 @@ public class DownLoad extends Thread{
 	private void exitForUser()
 	{
 		SerialTool.closePort(DownPort);
-		console.Print("***********************因您停止下载***************************");
+		console.Print("***********************因您停止下载uart***************************");
 	}
 	
 	public void run()
 	{
-		if(DownlodState)
-		{
-			DownlodState=false;            //检测到正在下载，取消下载
-			return ;
-		}
-		DownlodState=true;
 		String workPath=Platform.getInstanceLocation().getURL().getPath();
 		Properties prop = new Properties(); 
 		InputStream in = null;
@@ -177,17 +171,29 @@ public class DownLoad extends Thread{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		try {
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		String Port_Type=prop.getProperty("Port_Type");
 		String coms=prop.getProperty("Debug_port");
+		
 		if(Port_Type.equals("host"))                                              //进入host下载
 		{
-			ComBin combin=new ComBin();
-			combin.LodComBin("RDA",true);
-			OriginalDownload Od=new OriginalDownload(workPath+"\\RdaCombin.bin",coms);
+			OriginalDownload hostLoad=new OriginalDownload();
+			hostLoad.runlod(workPath+"\\RdaCombin.bin",coms);
 		}
 		else
 		{
-			
+			if(DownlodState)
+			{
+				DownlodState=false;            //检测到正在下载，取消下载
+				exitForUser();
+				return ;
+			}
+			DownlodState=true;
 			if(coms== null || coms.equals(""))
 			{
 				 JOptionPane.showMessageDialog(null, "没有设置下载口", "错误", JOptionPane.INFORMATION_MESSAGE);
@@ -256,12 +262,7 @@ public class DownLoad extends Thread{
 				
 			}
 			
-			try {
-				in.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
 		}
 					
 	}

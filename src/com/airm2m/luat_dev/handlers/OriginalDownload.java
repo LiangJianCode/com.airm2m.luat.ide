@@ -82,23 +82,72 @@ public class OriginalDownload {
 	int SCRIPT_DATA_BASE=0x002A0000;
 	int SCRIPT_DATA_LEN=0;
 	String comport;
-	public OriginalDownload(String LodFile,String com)
+	static boolean DownlodState=false;
+	private void exitForUser()
+	{
+		SerialTool.closePort(DownPort);
+		console.Print("***********************正在取消下载***************************");
+	}
+	public OriginalDownload()
+	{
+
+	}
+	private void handleOldPort()
+	{
+		log logs=new log();
+		if(logs.getSerPort() )
+		{
+			console.Print("关闭trace的占用");
+			logs.CancleLog();
+			try {
+				Thread.sleep(600);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		console.Print("trace 没有打开");
+	}
+	public void runlod(String LodFile,String com)
 	{
 		String path = null;
+		boolean lodResult=false;
+		if(DownlodState)
+		{
+			DownlodState=false;            //检测到正在下载，取消下载
+			exitForUser();
+			return ;
+		}
+		DownlodState=true;
 		comport=com;
+		handleOldPort();
+		console.Print("***********************开始下载***************************");
+		ComBin combin=new ComBin();
+		combin.LodComBin("RDA",true);
 		try {
 			 path=Platform.asLocalURL(Platform.getBundle("com.airm2m.luat_dev").getEntry("")).getFile();
-			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
-			start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod",LodFile);
+			lodResult=start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod",LodFile);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		if(lodResult)
+		{
+			console.Print("***********************下载结束***************************");
+			write_value(CMD_WR_REG, CTRL_SET_REG, new byte[] {(byte) 0x05});
+			log logs=new log();
+			logs.start();
+		}
+		else
+			console.Print("***********************下载失败***************************");
+		DownlodState=false;
+		return ;
 	}
 	private  void chip_xfbp()
 	{
@@ -109,40 +158,6 @@ public class OriginalDownload {
 	}
 	private  boolean enter_host_mode()
 	{
-		/*int reset_cause_value = read_value(CMD_RD_DWORD, RESET_CAUSE_REG,2000);
-		console.Print("读到的reset_cause_value"+reset_cause_value);
-		int boot_mode = (reset_cause_value & 0x3fffff) << 16;
-		int out_reg_data =  ((boot_mode | (1 << 1) | (1 << 3) ) << 16) & 0xffffffff;
-        write_value(CMD_WR_DWORD,0xa1a25000,  new byte[] {(byte)0x66,0x00,0x00,0x00});
-        write_value(CMD_WR_DWORD,0xa1a25000,new byte[] {(byte)0x99,0x00,0x00,0x00});
-        write_value(CMD_WR_DWORD, RESET_CAUSE_REG, IntToByte_Little(out_reg_data));
-        try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-        write_value(CMD_WR_REG, 0, new byte[] {(byte)0x05});
-        try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        write_value(CMD_WR_REG, CTRL_CFG_REG, new byte[] {(byte)0x80});
-        write_value(CMD_WR_REG, 1, new byte[] {(byte)0x02});
-        write_value(CMD_WR_REG, 5, new byte[] {(byte)0xfd});
-        write_value(CMD_WR_REG, 1, new byte[] {(byte)0x02});
-        if(wait_event(0xff000001,7000))
-        {
-        	 write_value(CMD_WR_DWORD, RESET_CAUSE_REG, new byte[] {(byte)0x00,(byte) 0x00,0x20,0x00});
-        	 if(config_ebc_ram())
-        	 {
-        		 return true;
-        	 }
-        }
-        return false;
-        */
 		try {
 			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x2a,0x00});
 			Thread.sleep(200);
@@ -322,6 +337,10 @@ public class OriginalDownload {
 	            rambuf_index += 1;
 	            wait=true;
 	            addr=addr+HOST_MAX_PACKET;
+	    		if(DownlodState==false)
+				{
+					return false;
+				}
 	        }
             if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
         		return false;
@@ -686,6 +705,10 @@ public class OriginalDownload {
 				console.Print("握手成功");
 				return true;
 			}
+			if(DownlodState==false)
+			{
+				return false;
+			}
 		}
 		JOptionPane.showMessageDialog(null, "请确保设备处于唤醒状态(可以通过重新上电实现)", "错误", JOptionPane.INFORMATION_MESSAGE);
 		return false;
@@ -693,24 +716,35 @@ public class OriginalDownload {
 	}
 	public  boolean start(String RamrunpPath,String ScrpPt) throws IOException
 	{
+		
 		DownPort=OpenDownLoadPort(comport);
+		if(DownPort==null)
+			return false;
 		if(SEND_DL_SYNC())
 		{
 			chip_xfbp();
 			if(enter_host_mode())
 				{
+					if(DownlodState==false)
+					{
+						return false;
+					}
 					List<byte[]> unpackRam=UnpackRamrun(RamrunpPath);
 					if(download_ramrun(unpackRam))
+					{
+						console.Print("下载ramrun成功");
+						if(download_scr(ScrpPt))
 						{
-							console.Print("下载ramrun成功");
-							if(download_scr(ScrpPt))
-							{
-								console.Print("脚本下载成功~~~~~~~~~~~~~~~~~");
-								return true;
-							}
+							console.Print("脚本下载成功~~~~~~~~~~~~~~~~~");
+							SerialTool.closePort(DownPort);
+							return true;
 						}
+					}
+					
 				}
 		}
+		SerialTool.closePort(DownPort);
+		
 		return false;
 	}
 
@@ -735,10 +769,8 @@ public class OriginalDownload {
 			 { 
 				 sb1data.append(hexStringToBytes_Little_String(str));
 			 }
-		      
+		     
 		 }
-		 //console.Print("RAM_LOAD");
-		 //console.Print(sb1data.toString());
 		 arrayList.add(hexStringToBytes(sb1data.toString()));
 		 
 		 br.close();
