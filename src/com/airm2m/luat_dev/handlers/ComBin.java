@@ -61,12 +61,12 @@ public class ComBin {
             String command = "cmd /c 7lzma.exe e "+ path+" "+path+".zip";
             Process proc=Runtime.getRuntime().exec(command);  
             InputStream fis=proc.getInputStream();    
-            //ç”¨ä¸€ä¸ªè¯»è¾“å‡ºæµç±»å»è¯»    
+            //ÓÃÒ»¸ö¶ÁÊä³öÁ÷ÀàÈ¥¶Á    
              InputStreamReader isr=new InputStreamReader(fis);    
-            //ç”¨ç¼“å†²å™¨è¯»è¡Œ    
+            //ÓÃ»º³åÆ÷¶ÁĞĞ    
              BufferedReader br=new BufferedReader(isr);    
              String line=null;    
-            //ç›´åˆ°è¯»å®Œä¸ºæ­¢    
+            //Ö±µ½¶ÁÍêÎªÖ¹    
             while((line=br.readLine())!=null)    
              {    
             	console.Print(line);    
@@ -155,7 +155,7 @@ public class ComBin {
 	}
 	public void deleteFile(String sPath) {  
 	    File file = new File(sPath);  
-	    // è·¯å¾„ä¸ºæ–‡ä»¶ä¸”ä¸ä¸ºç©ºåˆ™è¿›è¡Œåˆ é™¤  
+	    // Â·¾¶ÎªÎÄ¼şÇÒ²»Îª¿ÕÔò½øĞĞÉ¾³ı  
 	    if (file.isFile() && file.exists()) {  
 	        file.delete();  
 	    }  
@@ -223,7 +223,7 @@ public class ComBin {
 		 Plat_Type=prop.getProperty("Plat_Type");
 		if(TempPath==null || TempPath.equals(""))
 		{
-			JOptionPane.showMessageDialog(null, "æœªé€‰æ‹©å·¥ç¨‹ï¼Œæˆ–æœªå»ºç«‹å·¥ç¨‹", "é”™è¯¯", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Î´Ñ¡Ôñ¹¤³Ì£¬»òÎ´½¨Á¢¹¤³Ì", "´íÎó", JOptionPane.INFORMATION_MESSAGE);
 			ComBINsTATES=false;
 			return ;
 		}
@@ -252,11 +252,11 @@ public class ComBin {
 				compress=true;
 			WriteBody(FileList,file,compress);
 			file.close();
-			console.Print("åˆå¹¶å®Œæ¯•"+FileList.toString());
+			console.Print("ºÏ²¢Íê±Ï"+FileList.toString());
 		}
 		else
 		{
-			JOptionPane.showMessageDialog(null, "å·¥ç¨‹è„šæœ¬æ–‡ä»¶ä¸ºç©º,æˆ–å·¥ç¨‹ä½ç½®è®¾ç½®é”™è¯¯", "é”™è¯¯", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null, "¹¤³Ì½Å±¾ÎÄ¼şÎª¿Õ,»ò¹¤³ÌÎ»ÖÃÉèÖÃ´íÎó", "´íÎó", JOptionPane.INFORMATION_MESSAGE);
 			ComBINsTATES=false;
 			
 			return ;
@@ -287,11 +287,11 @@ public class ComBin {
 					compress=true;
 				WriteBody(FileList,file,compress);
 				file.close();
-				console.Print("åˆå¹¶å®Œæ¯•"+FileList.toString());
+				console.Print("ºÏ²¢Íê±Ï"+FileList.toString());
 			}
 			else
 			{
-				JOptionPane.showMessageDialog(null, "å·¥ç¨‹è„šæœ¬æ–‡ä»¶ä¸ºç©º,æˆ–å·¥ç¨‹ä½ç½®è®¾ç½®é”™è¯¯", "é”™è¯¯", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null, "¹¤³Ì½Å±¾ÎÄ¼şÎª¿Õ,»ò¹¤³ÌÎ»ÖÃÉèÖÃ´íÎó", "´íÎó", JOptionPane.INFORMATION_MESSAGE);
 				ComBINsTATES=false;
 				
 				return ;
@@ -310,7 +310,7 @@ public class ComBin {
 				WriteBody(SrcFileList,file_scr,false);
 				//WriteBlackSrc(file_scr);
 				file_scr.close();
-				console.Print("åˆå¹¶è„šæœ¬å®Œæ¯•"+SrcFileList.toString());
+				console.Print("ºÏ²¢½Å±¾Íê±Ï"+SrcFileList.toString());
 				
 				
 				WriteFile file_res=new WriteFile(work_space_path+"\\CUSTOMER_RES");
@@ -324,13 +324,13 @@ public class ComBin {
 					WriteBody(ResFileList,file_res,false);
 					//WriteBlackRes(file_res);
 					file_scr.close();
-					console.Print("åˆå¹¶èµ„æºå®Œæ¯•"+ResFileList.toString());
+					console.Print("ºÏ²¢×ÊÔ´Íê±Ï"+ResFileList.toString());
 				}
 				
 			}
 			else
 			{
-				JOptionPane.showMessageDialog(null, "å·¥ç¨‹è„šæœ¬æ–‡ä»¶ä¸ºç©º,æˆ–å·¥ç¨‹ä½ç½®è®¾ç½®é”™è¯¯", "é”™è¯¯", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(null, "¹¤³Ì½Å±¾ÎÄ¼şÎª¿Õ,»ò¹¤³ÌÎ»ÖÃÉèÖÃ´íÎó", "´íÎó", JOptionPane.INFORMATION_MESSAGE);
 				ComBINsTATES=false;
 			}
 
