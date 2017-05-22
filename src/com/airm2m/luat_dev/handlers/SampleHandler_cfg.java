@@ -8,7 +8,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -566,23 +568,19 @@ public class SampleHandler_cfg extends AbstractHandler {
 				int byteread = 0; 
 				File oldfile = new File(oldPath);
 				File newfilse = new File(newPath);
-				if (!newfilse.exists()) { //dll不存在时候 
-					InputStream inStream = new FileInputStream(oldPath); //读入原文件 
-					FileOutputStream fs = new FileOutputStream(newPath); 
-					byte[] buffer = new byte[1444]; 
-					int length; 
-					while ( (byteread = inStream.read(buffer)) != -1) { 
-						bytesum += byteread; //字节数 文件大小 
-						System.out.println(bytesum); 
-						fs.write(buffer, 0, byteread); 
-					} 
-						console.Print("DLL复制成功");
-						inStream.close(); 
-					}
-				else
-				{
-					console.Print("DLL文件已经存在");
-				}
+		 
+				InputStream inStream = new FileInputStream(oldPath); //读入原文件 
+				FileOutputStream fs = new FileOutputStream(newPath); 
+				byte[] buffer = new byte[1444]; 
+				int length; 
+				while ( (byteread = inStream.read(buffer)) != -1) { 
+					bytesum += byteread; //字节数 文件大小 
+					System.out.println(bytesum); 
+					fs.write(buffer, 0, byteread); 
+				} 
+					console.Print("DLL复制成功");
+					inStream.close(); 
+
 			}
 			catch (Exception e) { 
 				console.Print("复制DLL文件操作出错"); 
@@ -593,31 +591,45 @@ public class SampleHandler_cfg extends AbstractHandler {
 		return true;
 
 		}
-	private void set_dll(String path)
+	private boolean set_dll(String path)
 	{
+		
 		Properties sysProperty=System.getProperties(); //系统属性
 		String arch=sysProperty.getProperty("os.arch");
+		/*if (arch.equals("amd64"))
+		{
+			System.lod(path+"\\mfz-rxtx-2.2-20081207-win-x64\\rxtxParallel.dll");
+			System.load(path+"\\mfz-rxtx-2.2-20081207-win-x64\\rxtxSerial.dll");
+		}*/
 		File newfilse1 = new File("C:\\Windows\\System32\\rxtxParallel.dll");
 		File newfilse2 = new File("C:\\Windows\\System32\\rxtxSerial.dll");
-		if(!newfilse1.exists() || !newfilse2.exists())
+		long time= newfilse1.lastModified();
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");         
+	    cal.setTimeInMillis(time);
+	    int  newFiletime=Integer.parseInt(formatter.format(cal.getTime()));
+		if(!newfilse1.exists() || !newfilse2.exists() || newFiletime <20170511)
 		{
 			if (arch.equals("amd64"))
 			{
-				if(!copyFile(path+"\\mfz-rxtx-2.2-20081207-win-x64\\rxtxParallel.dll","C:\\Windows\\System32\\rxtxParallel.dll"))
-					return ;
-				if(!copyFile(path+"\\mfz-rxtx-2.2-20081207-win-x64\\rxtxSerial.dll","C:\\Windows\\System32\\rxtxSerial.dll"))
-					return ;
+				if(!copyFile(path+"\\mfz-rxtx-2.1-win-x64\\rxtxParallel.dll","C:\\Windows\\System32\\rxtxParallel.dll"))
+					return false;
+				if(!copyFile(path+"\\mfz-rxtx-2.1-win-x64\\rxtxSerial.dll","C:\\Windows\\System32\\rxtxSerial.dll"))
+					return false;
 			}
 			else
 			{
-				if(!copyFile(path+"\\mfz-rxtx-2.2-20081207-win-x86\\rxtxParallel.dll","C:\\Windows\\System32\\rxtxParallel.dll"))
-					return ;
-				if(!copyFile(path+"\\mfz-rxtx-2.2-20081207-win-x86\\rxtxSerial.dll","C:\\Windows\\System32\\rxtxSerial.dll"))
-					return ;
+				if(!copyFile(path+"\\mfz-rxtx-2.1-win-x86\\rxtxParallel.dll","C:\\Windows\\System32\\rxtxParallel.dll"))
+					return false;
+				if(!copyFile(path+"\\mfz-rxtx-2.1-win-x86\\rxtxSerial.dll","C:\\Windows\\System32\\rxtxSerial.dll"))
+					return false;
 			}
-			JOptionPane.showMessageDialog(null, "因缺少驱动，添加驱动完成，即将重启", "提示", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(null, "因缺少驱动，添加驱动完成，即将重启,请注意使用管理员权限打开IDE", "提示", JOptionPane.INFORMATION_MESSAGE);
 			PlatformUI.getWorkbench().restart();
+			return false;
+			
 		}
+		return true;
 	}
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -636,12 +648,13 @@ public class SampleHandler_cfg extends AbstractHandler {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		set_dll(path);
-		//DirectoryDialog dialog = new DirectoryDialog(window.getShell());
-		//String  selectPath = dialog.open() ;
-		cfg_thread cfg=new cfg_thread();
-		cfg.run();
-		CFG_STATUS =false;
+		if(set_dll(path))
+		{
+			cfg_thread cfg=new cfg_thread();
+			cfg.run();
+			CFG_STATUS =false;
+		}
+
 		
 		return null;
 	}
