@@ -21,6 +21,9 @@ import SevenZip.LzmaAlone;
 
 public class ComBin {
 	ShowConsole console=new ShowConsole("combin");
+	String work_space_path=null;
+	String TempPath=null;
+	String Plat_Type=null;
 	File tempZipfile;
 	private ArrayList<String> FileList = new ArrayList<String>();
 	private ArrayList<String> SrcFileList = new ArrayList<String>();
@@ -97,7 +100,7 @@ public class ComBin {
                 	else {
 	                	if(!file2.getName().equals(".buildpath") && !file2.getName().equals(".project"))
 	                	{
-	                		console.Print("file add :"+file2.getName());
+	                		//console.Print("file add :"+file2.getName());
 	                		ALLList.add(file2.getAbsolutePath());
 	                	}
                     }
@@ -130,7 +133,7 @@ public class ComBin {
 		pump_on_buf.putShort((short) 0x0401).putInt(getUnsignedInt(0xA55AA55A));           
 		pump_on_buf.putShort((short) 0x0202).putShort((short) 1);                          
 		pump_on_buf.putShort((short) 0x0403).putInt(getUnsignedInt(0x18));				   
-		pump_on_buf.putShort((short) 0x0204).putShort((byte) getUnsignedByte(fileList.size())); 
+		pump_on_buf.putShort((short) 0x0204).putShort((byte) getUnsignedByte(fileList.size()));
 		pump_on_buf.putShort((short) 0x02FE);											   	
 		pump_on = pump_on_buf.array();
 		pump_on_buf.putShort(GetChecksum(pump_on,(short) 22));                             
@@ -191,11 +194,10 @@ public class ComBin {
 		}
 		
 	}
-	
-	public  ComBin(String platform,boolean hostcompress)
-	{	
+	private void getmsg()
+	{
 		Properties prop = new Properties(); 
-		String work_space_path=Platform.getInstanceLocation().getURL().getPath();
+		work_space_path=Platform.getInstanceLocation().getURL().getPath();
 		console.Print("work_path0:"+work_space_path);
 		InputStream in = null;
 		try {
@@ -211,13 +213,57 @@ public class ComBin {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		String TempPath=prop.getProperty("Active_Project");
+	  try {
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 TempPath=prop.getProperty("Active_Project");
+		 Plat_Type=prop.getProperty("Plat_Type");
 		if(TempPath==null || TempPath.equals(""))
 		{
 			JOptionPane.showMessageDialog(null, "未选择工程，或未建立工程", "错误", JOptionPane.INFORMATION_MESSAGE);
 			ComBINsTATES=false;
 			return ;
 		}
+		
+	}
+	public void  Merge()
+	{
+		getmsg();
+		String path=work_space_path+"\\"+TempPath;
+		String outputname;
+		if(Plat_Type.equals("RDA"))
+			outputname="Update_Air2xx";
+		else
+			outputname="Update_Air8xx";
+		WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
+		GetALLFile(path);
+		FileList=ALLList;
+		ALLList=new ArrayList<String>();
+		if(FileList!=null)
+		{
+			WriteHead(file,FileList);
+			WriteBody(FileList,file,true);
+			file.close();
+			console.Print("合并完毕"+FileList.toString());
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(null, "工程脚本文件为空,或工程位置设置错误", "错误", JOptionPane.INFORMATION_MESSAGE);
+			ComBINsTATES=false;
+			
+			return ;
+		}
+	}
+	public  ComBin()
+	{
+		
+	}
+	public  void LodComBin(String platform,boolean hostcompress)
+	{	
+		getmsg();
 		String path=work_space_path+"\\"+TempPath;
 		console.Print("active_project:"+path);
 		if(platform.equals("RDA"))
@@ -242,12 +288,7 @@ public class ComBin {
 			{
 				JOptionPane.showMessageDialog(null, "工程脚本文件为空,或工程位置设置错误", "错误", JOptionPane.INFORMATION_MESSAGE);
 				ComBINsTATES=false;
-				  try {
-						in.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+				
 				return ;
 			}
 		}
@@ -286,21 +327,8 @@ public class ComBin {
 			{
 				JOptionPane.showMessageDialog(null, "工程脚本文件为空,或工程位置设置错误", "错误", JOptionPane.INFORMATION_MESSAGE);
 				ComBINsTATES=false;
-				  try {
-						in.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				return ;
 			}
 
-		}
-	  try {
-			in.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	  ComBINsTATES=true;
 	}
