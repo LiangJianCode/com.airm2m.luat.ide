@@ -229,19 +229,16 @@ public class SerialTool {
     	InputStream in = null;
         byte[] bytes = null;
         List<byte[]> bytesList=new ArrayList<byte[]>(){ };
-        SimpleDateFormat sf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
         	//System.out.println("readFromPort************");
         	in = serialPort.getInputStream();
         	int bufflenth = in.available();		//获取buffer里的数据长度
-        	System.out.println(sf.format(new Date())+"readFromPort************:"+bufflenth);
         	
         	while (bufflenth != 0) {
                 bytes = new byte[bufflenth];	//初始化byte数组为buffer中数据的长度
                 in.read(bytes);
                 bytesList.add(bytes);
                 bufflenth = in.available();
-                printHexString(bytes);
         	}
         	
         } catch (IOException e) {
@@ -269,8 +266,6 @@ public class SerialTool {
         	System.arraycopy(bytesList.get(i), 0, AllBytes, flag, bytesList.get(i).length);
         	flag=flag+bytesList.get(i).length;
         }
-        System.out.println("all_byte:"+AllBytes.length);
-        printHexString(AllBytes);
         return AllBytes;
     }
     
