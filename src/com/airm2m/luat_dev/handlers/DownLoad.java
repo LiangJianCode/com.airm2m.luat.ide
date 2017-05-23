@@ -148,7 +148,7 @@ public class DownLoad extends Thread{
 	private void exitForUser()
 	{
 		SerialTool.closePort(DownPort);
-		console.Print("***********************因您停止下载uart***************************");
+		console.Print("***********************取消下载uart***************************");
 	}
 	
 	public void run()
@@ -180,19 +180,34 @@ public class DownLoad extends Thread{
 		String Port_Type=prop.getProperty("Port_Type");
 		String coms=prop.getProperty("Debug_port");
 		
+		if(Port_Type == null)
+		{
+			JOptionPane.showMessageDialog(null, "没有或读取配置文件出错", "错误", JOptionPane.INFORMATION_MESSAGE);
+			return ;
+		}
+		
 		if(Port_Type.equals("host"))                                              //进入host下载
 		{
+			if(DownlodState)
+			{
+				DownlodState=false;
+				SerialTool.closePort(DownPort);
+				console.Print("***********************关闭uart下载***************************");
+			}
 			OriginalDownload hostLoad=new OriginalDownload();
 			hostLoad.runlod(workPath+"\\RdaCombin.bin",coms);
 		}
-		else
+		else  
 		{
+			
 			if(DownlodState)
 			{
 				DownlodState=false;            //检测到正在下载，取消下载
 				exitForUser();
 				return ;
 			}
+			OriginalDownload hostLoad=new OriginalDownload();
+			hostLoad.outCLOSE();
 			DownlodState=true;
 			if(coms== null || coms.equals(""))
 			{
@@ -200,7 +215,7 @@ public class DownLoad extends Thread{
 				DownlodState=false;
 				return ;
 			}
-			console.Print("***********************开始下载***************************");
+			console.Print("***********************开始下载(uart)***************************");
 			handleOldPort();
 			DownPort=OpenDownLoadPort(coms);
 			if(DownPort!=null)
@@ -223,7 +238,7 @@ public class DownLoad extends Thread{
 							{
 								SerialTool.closePort(DownPort);
 								DownlodState=false;
-								console.Print("***********************下载失败***************************");
+								console.Print("***********************下载失败(uart)***************************");
 								return ;
 							}
 					}
@@ -235,7 +250,7 @@ public class DownLoad extends Thread{
 								{
 									SerialTool.closePort(DownPort);
 									DownlodState=false;
-									console.Print("***********************下载失败***************************");
+									console.Print("***********************下载失败(uart)***************************");
 									return;
 								}
 							}
@@ -243,13 +258,13 @@ public class DownLoad extends Thread{
 						{
 							SerialTool.closePort(DownPort);
 							DownlodState=false;
-							console.Print("***********************下载失败***************************");
+							console.Print("***********************下载失败(uart)***************************");
 						}
 						
 					}
 					
 					DownlodState=false;
-					console.Print("***********************下载结束***************************");
+					console.Print("***********************下载结束(uart)***************************");
 					SerialTool.closePort(DownPort);
 					log logs=new log();
 					logs.start();
@@ -257,13 +272,15 @@ public class DownLoad extends Thread{
 				else
 				{
 					SerialTool.closePort(DownPort);
-					console.Print("***********************下载失败***************************");
+					DownlodState=false;
+					console.Print("***********************下载失败(uart)***************************");
 				}
 				
 			}
 			
 
 		}
+
 					
 	}
 	public SerialPort getSerPort()
@@ -512,7 +529,6 @@ public class DownLoad extends Thread{
 				   }
 	   			else if((!DownlodState))
 	   			{
-	   				exitForUser();
 	   				return false;
 	   			}
 	   			else

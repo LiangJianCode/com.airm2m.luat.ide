@@ -82,15 +82,25 @@ public class OriginalDownload {
 	int SCRIPT_DATA_BASE=0x002A0000;
 	int SCRIPT_DATA_LEN=0;
 	String comport;
+	ComBin combin=null;
 	static boolean DownlodState=false;
 	private void exitForUser()
 	{
 		SerialTool.closePort(DownPort);
-		console.Print("***********************正在取消下载***************************");
+		console.Print("***********************正在取消下载(host)***************************");
 	}
 	public OriginalDownload()
 	{
 
+	}
+	public void outCLOSE()
+	{
+		if(DownlodState)
+		{
+			SerialTool.closePort(DownPort);
+			console.Print("***********************取消HOST下载***************************");
+			DownlodState=false;
+		}
 	}
 	private void handleOldPort()
 	{
@@ -122,8 +132,8 @@ public class OriginalDownload {
 		DownlodState=true;
 		comport=com;
 		handleOldPort();
-		console.Print("***********************开始下载***************************");
-		ComBin combin=new ComBin();
+		console.Print("***********************开始下载(host)***************************");
+		combin=new ComBin();
 		combin.LodComBin("RDA",true);
 		try {
 			 path=Platform.asLocalURL(Platform.getBundle("com.airm2m.luat_dev").getEntry("")).getFile();
@@ -139,13 +149,13 @@ public class OriginalDownload {
 		}
 		if(lodResult)
 		{
-			console.Print("***********************下载结束***************************");
-			write_value(CMD_WR_REG, CTRL_SET_REG, new byte[] {(byte) 0x05});
+			console.Print("***********************下载结束(host)***************************");
+			
 			log logs=new log();
 			logs.start();
 		}
 		else
-			console.Print("***********************下载失败***************************");
+			console.Print("***********************下载失败(host)***************************");
 		DownlodState=false;
 		return ;
 	}
@@ -237,21 +247,12 @@ public class OriginalDownload {
 	}
 	private byte[] combinAndRead(String path)
 	{
-		//ComBin combin=new ComBin("RDA");
-		//if(combin.getCombinStatus())
-		//{
-			byte[] downloadfile=null;
-			ReadFile recv=new ReadFile(path);
-			downloadfile=new byte[recv.len()];
-			recv.read(downloadfile);
-			byte[] ss=new byte[256];
-			
-			return downloadfile;
-		//}
-		//else
-		//{
-		//	return null;
-		//}
+		byte[] downloadfile=null;
+		ReadFile recv=new ReadFile(path);
+		downloadfile=new byte[recv.len()];
+		recv.read(downloadfile);
+		console.Print("combinAndRead:"+path);	
+		return downloadfile;
 	}
 	
 	private byte[] packFpcCmd(int FPC_NONE,int addr,int fpc_rambuf,int size,int data)
@@ -283,6 +284,8 @@ public class OriginalDownload {
 		SCRIPT_DATA_LEN=read_value(CMD_RD_DWORD, 0x88000008,2000);
 		console.Print("读取脚本下载区信息:起始地址"+base_addr+"区域大小:"+SCRIPT_DATA_LEN);	
 	}
+
+	
 	private  boolean download_scr(String path)
 	{
 		int cmdbuf_index=0;
@@ -300,13 +303,37 @@ public class OriginalDownload {
 		int bufsize=fpc_access.get(5);
 		boolean wait=false;
 		byte[] data=combinAndRead(path);
+		if(data.length >SCRIPT_DATA_LEN)
+		{
+			combin.LodComBin("RDA",false);  //如果脚本文件大于脚本空间，那么就压缩
+			data=combinAndRead(path);
+		}
 		HOST_MAX_PACKET=bufsize;
 		int addr=SCRIPT_DATA_BASE;
 		int esr_mor=0;
 		byte[] fcsend=fcsclr(data,SCRIPT_DATA_BASE);
+		int ersNum=(0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN))/FLASH_ERARE_SIZE;
+		
+		int esr_mor_user=0;
+		if((0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN))%FLASH_ERARE_SIZE!=0)
+			esr_mor_user=1;
+		console.Print("开始擦除文件系统");
+		for(int s=0;s<ersNum+esr_mor_user;s++)
+		{
+			int esr_size=FLASH_ERARE_SIZE;
+			if((0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN)) -(s*FLASH_ERARE_SIZE)<FLASH_ERARE_SIZE)
+				esr_size=(0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN)) -(s*FLASH_ERARE_SIZE);
+			//console.Print("擦除文件:"+s+" 大小:"+esr_size);
+	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,SCRIPT_DATA_BASE+SCRIPT_DATA_LEN,fpc_access_ram.get(rambuf_index%3),esr_size,0));        
+	        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_ERASE_SECTOR);
+	        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+	    		return false;
+	        cmdbuf_index ^= 0x01;
+		}
+		console.Print("擦除文件系统完成");
+		
 		if((data.length)%FLASH_ERARE_SIZE!=0)
 			esr_mor=1;
-
 		for(int j=0;j<(data.length)/FLASH_ERARE_SIZE+esr_mor;j++)
 		{
 			int esr_Num = FLASH_ERARE_SIZE*j+FLASH_ERARE_SIZE;
@@ -318,7 +345,7 @@ public class OriginalDownload {
 				lod_mor=1;
 	        for(int i=j*2;i<j*2+1+lod_mor;i++)
 	        {
-	        	console.Print("下载脚本包:"+i);
+	        	console.Print("发送下载脚本包:"+(i+1)+"/"+((data.length)/section+1));
 	        	int write_num=HOST_MAX_PACKET;
 				int lod_Num = HOST_MAX_PACKET*i+HOST_MAX_PACKET;
 				if(lod_Num>data.length)
@@ -736,6 +763,7 @@ public class OriginalDownload {
 						if(download_scr(ScrpPt))
 						{
 							console.Print("脚本下载成功~~~~~~~~~~~~~~~~~");
+							write_value(CMD_WR_REG, CTRL_SET_REG, new byte[] {(byte) 0x05});
 							SerialTool.closePort(DownPort);
 							return true;
 						}
