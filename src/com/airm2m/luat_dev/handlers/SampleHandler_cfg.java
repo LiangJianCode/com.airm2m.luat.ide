@@ -11,6 +11,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -603,12 +604,30 @@ public class SampleHandler_cfg extends AbstractHandler {
 		}*/
 		File newfilse1 = new File("C:\\Windows\\System32\\rxtxParallel.dll");
 		File newfilse2 = new File("C:\\Windows\\System32\\rxtxSerial.dll");
+		
 		long time= newfilse1.lastModified();
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");         
 	    cal.setTimeInMillis(time);
 	    int  newFiletime=Integer.parseInt(formatter.format(cal.getTime()));
-		if(!newfilse1.exists() || !newfilse2.exists() || newFiletime <20170511)
+	    System.out.println("文件大小："+newfilse1.length());
+	    boolean copyre=false;
+		if (arch.equals("amd64"))
+		{
+			if(newfilse1.length() !=84480)
+			{
+				copyre=true;
+			}
+		}
+		else
+		{
+			if(newfilse2.length() !=108032)
+			{
+				copyre=true;
+			}
+		}
+		
+		if(!newfilse1.exists() || !newfilse2.exists() || copyre)
 		{
 			if (arch.equals("amd64"))
 			{

@@ -722,50 +722,12 @@ public class DownLoad extends Thread{
 			console.Print("串口在使用中");
 			JOptionPane.showMessageDialog(null, "串口正在使用中", "错误", JOptionPane.INFORMATION_MESSAGE);
 			e.printStackTrace();
+			console.Print("***********************下载失败***************************");
+			DownlodState=false;    
 			return null;
 		}
     	console.Print("打开串口成功");
-       /* Timer timer = new Timer();  
-        timer.schedule(new TimerTask() {  
-            public void run() {  
-            	List<byte[]>  data_buf_temp = data_buf;     //消费者
-            	data_buf = new ArrayList<byte[]>();
-            	if(data_buf_temp.size()>0)
-            	{
-            		for(int i=0;i<data_buf_temp.size();i++)
-            		{
-            			console.Print("收到数据的长度的数据长度~~~~~~~~~~~~~~:"+data_buf_temp.get(i).length);
-						console.printHexString(data_buf_temp.get(i));
-						byte[] ss=new byte[1];
-						for(int j=0;j<data_buf_temp.get(i).length;j++)
-						{
-							System.arraycopy(data_buf_temp.get(i), j, ss, 0, 1);
-							handleRcvByte(ss);
-						}
-            		}          
-            	}
-            }  
-        }, 100, 100);
-        
-        Timer timer1= new Timer();  
-        console.Print("接收数据数据");
-        timer1.schedule(new TimerTask() {  
-            public void run() {  
-            	    byte[] data={};
-	            	try {
-						data = SerialTool.readFromPort(DownPort);
-					} catch (ReadDataFromSerialPortFailure e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (SerialPortInputStreamCloseFailure e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}	//读取数据，存入字节数组
-					if (data != null && data.length >= 1) {	
-						data_buf.add(data);                                 //生产者
-					}
-            }  
-        }, 10, 10);*/
+
     	try {
     		console.Print("添加对串口"+tempPort+"监听");
 			SerialTool.addListener(tempPort, new SerialListener());
