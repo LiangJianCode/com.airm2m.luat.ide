@@ -112,7 +112,7 @@
                   commandId="com.airm2m.luat_dev.commands.MergeBin"
                   icon="icons/Merge.png"
                   id="com.airm2m.luat_dev.toolbars.MergeBin"
-                  tooltip="trace">
+                  tooltip="merge  file">
             </command>
          </toolbar>
       </menuContribution>
