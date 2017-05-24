@@ -307,6 +307,11 @@ public class OriginalDownload {
 		{
 			combin.LodComBin("RDA",false);  //如果脚本文件大于脚本空间，那么就压缩
 			data=combinAndRead(path);
+			if(data.length >SCRIPT_DATA_LEN)
+			{
+				console.Print("脚本文件过大,请裁剪");	
+				return false;
+			}
 		}
 		HOST_MAX_PACKET=bufsize;
 		int addr=SCRIPT_DATA_BASE;
