@@ -293,7 +293,7 @@ public class log extends Thread{
 						}				
 					}
 				catch (ReadDataFromSerialPortFailure | SerialPortInputStreamCloseFailure e) {
-					JOptionPane.showMessageDialog(null, e, "´íÎó", JOptionPane.INFORMATION_MESSAGE);
+					//JOptionPane.showMessageDialog(null, e, "´íÎó", JOptionPane.INFORMATION_MESSAGE);
 				}	
 				
 		    }
