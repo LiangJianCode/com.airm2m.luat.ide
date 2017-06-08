@@ -235,32 +235,47 @@ public class ComBin {
 		String path=work_space_path+"\\"+TempPath;
 		String outputname;
 		if(Plat_Type.equals("RDA"))
-			outputname="Update_Air2xx";
+			{
+				outputname="Update_Air2xx";
+				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
+				GetALLFile(path);
+				FileList=ALLList;
+				ALLList=new ArrayList<String>();
+				if(FileList!=null)
+				{
+					WriteHead(file,FileList);
+					boolean compress;
+					if(hostcompress)
+						compress=false;
+					else
+						compress=true;
+					WriteBody(FileList,file,compress);
+					file.close();
+					console.Print("合并完毕"+FileList.toString());
+				}
+				else
+				{
+					JOptionPane.showMessageDialog(null, "工程脚本文件为空,或工程位置设置错误", "错误", JOptionPane.INFORMATION_MESSAGE);
+					ComBINsTATES=false;
+					
+					return ;
+				}
+			}
 		else
-			outputname="Update_Air8xx";
-		WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
-		GetALLFile(path);
-		FileList=ALLList;
-		ALLList=new ArrayList<String>();
-		if(FileList!=null)
-		{
-			WriteHead(file,FileList);
-			boolean compress;
-			if(hostcompress)
-				compress=false;
-			else
-				compress=true;
-			WriteBody(FileList,file,compress);
-			file.close();
-			console.Print("合并完毕"+FileList.toString());
-		}
-		else
-		{
-			JOptionPane.showMessageDialog(null, "工程脚本文件为空,或工程位置设置错误", "错误", JOptionPane.INFORMATION_MESSAGE);
-			ComBINsTATES=false;
-			
-			return ;
-		}
+			{
+				outputname="Update_Air8xx";
+				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
+				GetALLFile(path);
+				FileList=ALLList;
+				ALLList=new ArrayList<String>();
+				WriteMTKHeadSrc(file);
+				WriteHead(file,FileList);
+				WriteBody(FileList,file,false);
+				//WriteBlackSrc(file_scr);
+				file.close();
+				console.Print("合并脚本完毕"+FileList.toString());
+			}
+
 	}
 	public  ComBin()
 	{

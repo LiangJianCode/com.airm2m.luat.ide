@@ -170,16 +170,13 @@ public class OriginalDownload {
 	{
 		try {
 			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x2a,0x00});
-			Thread.sleep(200);
 			write_value(CMD_WR_REG,0x00,  new byte[] {(byte)0x05});
-			Thread.sleep(600);
+			Thread.sleep(1000);
 			write_value(CMD_WR_REG,0x03,  new byte[] {(byte)0x80});
-			Thread.sleep(100);
 			write_value(CMD_WR_REG,0x01,  new byte[] {(byte)0x02});
-			Thread.sleep(100);
 			write_value(CMD_WR_REG,0x05,  new byte[] {(byte)0xfd});
-			Thread.sleep(100);
-			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x2a,0x00});
+			wait_event(0xff000001,2000);
+			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x20,0x00});
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -768,7 +765,6 @@ public class OriginalDownload {
 						if(download_scr(ScrpPt))
 						{
 							console.Print("脚本下载成功~~~~~~~~~~~~~~~~~");
-							write_value(CMD_WR_REG, CTRL_SET_REG, new byte[] {(byte) 0x05});
 							SerialTool.closePort(DownPort);
 							return true;
 						}
