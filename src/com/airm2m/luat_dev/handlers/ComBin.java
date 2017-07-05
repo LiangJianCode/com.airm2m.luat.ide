@@ -82,10 +82,123 @@ public class ComBin {
 	{
 		return path.trim().substring(path.trim().lastIndexOf("\\")+1);  
 	}
-
+	private static String GetTrueModuleName(String ModuleName)
+	{
+		String TrueModuleName="";
+		int step1_find_flg=1;        // 为1的时候，代表开始寻找，2的时候代表找的require的头部，3的时候代表寻找结束
+		int num=0;
+		int strnum=0;
+		int endnum=0;
+		byte ModuleNameBYTE[] = ModuleName.getBytes();
+		for(byte temp:ModuleNameBYTE)
+		{
+			if(step1_find_flg == 1)
+			{
+				if(temp==34)
+				{
+					strnum=num+1;
+					step1_find_flg=2;
+				}
+				else if(temp != 32)
+				{
+					return "";
+				}
+				
+			}
+			else if(step1_find_flg==2)
+			{
+				if(temp==34)
+				{
+					endnum=num;
+					step1_find_flg=3;
+				}
+			}
+			else if(step1_find_flg==3)
+			{
+				break;
+			}
+			num=num+1;
+		}
+		TrueModuleName=ModuleName.substring(strnum,endnum);
+		return TrueModuleName; 
+	}
+	private static void GetModul(String ss, ArrayList<String>  listmodle)
+	{ 
+		int startIndex =0;
+		String temp_modle_name = null;
+		startIndex=ss.indexOf("require", startIndex);
+		if (startIndex!=-1)
+		{
+			temp_modle_name=GetTrueModuleName(ss.substring(startIndex+7));
+			temp_modle_name=temp_modle_name+".lua";
+			listmodle.add(temp_modle_name);
+			//System.out.println(temp_modle_name);  
+			while(startIndex!=-1)
+			{
+				 startIndex=ss.indexOf("require", startIndex+7);
+				 if(startIndex !=-1)
+				 {
+					 temp_modle_name=GetTrueModuleName(ss.substring(startIndex+7));
+					 temp_modle_name=temp_modle_name+".lua";
+					 //System.out.println(temp_modle_name);  
+					 listmodle.add(temp_modle_name);
+				 }
+				 else
+				 {
+					 break;
+				 }
+			} 
+		}
+	}
+	private static ArrayList<String> filtrate(ArrayList<String> filelist)
+	{
+		ArrayList<String>  truemodle=new ArrayList<String>();
+		ArrayList<String> Tempfilelist=new ArrayList<String>();
+		String[] aArray = new String[5];         
+		String[] bArray = {"coroutine.lua","string.lua","table.lua", "math.lua", "io.lua","os.lua","bit.lua","cpu.lua", "disp.lua", "i2c.lua","pack.lua","pio.lua", "pmd.lua","rtos.lua","uart.lua", "adc.lua", "iconv.lua","audiocore.lua","zlib.lua","crypto.lua","json.lua"};  
+		Tempfilelist=(ArrayList<String>) filelist.clone();
+		int flag_Main=0;
+        for(String tmp:filelist){
+            //System.out.println(tmp);
+            ReadFile FILE= new ReadFile(tmp);
+            byte[] Cellbody = new byte[FILE.len()];
+            FILE.read(Cellbody);
+            String t = new String(Cellbody);
+            GetModul(t,truemodle);
+        } 
+        for(String tem1:filelist)
+        {
+        	File tempFile =new File( tem1.trim());  
+            String fileName = tempFile.getName();  
+            if(fileName.equals("main.lua") )
+            {
+            	truemodle.add("main.lua");
+            	flag_Main=1;
+            }
+            for(String tmp_lib:bArray)
+            {
+            	System.out.println(tmp_lib+"  "+fileName);
+            	if(tmp_lib.equals(fileName) )
+                {
+            		System.out.println("文件"+tmp_lib+"和扩展卡命名重复，请重新命名");  
+            		JOptionPane.showMessageDialog(null, "文件"+tmp_lib+"和扩展卡命名重复，请重新命名", "错误", JOptionPane.INFORMATION_MESSAGE);
+            		return null;
+                }
+            }
+        	if(truemodle.indexOf(fileName)==-1)
+        	{
+        		Tempfilelist.remove(tem1);
+        	}
+        }
+        if(flag_Main==0)
+        {
+        	JOptionPane.showMessageDialog(null, "工作空间没有包含main.lua文件", "错误", JOptionPane.INFORMATION_MESSAGE);
+        	return null;
+        }
+		return Tempfilelist;
+	}
 	private void GetALLFile(String path) {
 		File file = new File(path);
-		
         if (file.exists()) {
             File[] files = file.listFiles();
             if (files.length == 0) {
@@ -192,7 +305,6 @@ public class ComBin {
 		{
 			AllScrNameList.add(GetScriptSrc(i));
 		}
-		
 	}
 	private void getmsg()
 	{
@@ -239,6 +351,13 @@ public class ComBin {
 				outputname="Update_Air2xx";
 				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
 				GetALLFile(path);
+		        System.out.println(ALLList); 
+		        ALLList=filtrate(ALLList);
+		        if(ALLList ==null)
+		        {
+		        	return ;
+		        }
+		        System.out.println(ALLList); 
 				FileList=ALLList;
 				ALLList=new ArrayList<String>();
 				if(FileList!=null)
@@ -266,6 +385,11 @@ public class ComBin {
 				outputname="Update_Air8xx";
 				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
 				GetALLFile(path);
+		        ALLList=filtrate(ALLList);
+		        if(ALLList ==null)
+		        {
+		        	return ;
+		        }
 				FileList=ALLList;
 				ALLList=new ArrayList<String>();
 				WriteMTKHeadSrc(file);
@@ -281,6 +405,7 @@ public class ComBin {
 	{
 		
 	}
+
 	public  void LodComBin(String platform,boolean hostcompress)
 	{	
 		getmsg();
@@ -290,6 +415,11 @@ public class ComBin {
 		{
 			WriteFile file=new WriteFile(work_space_path+"\\RdaCombin.bin");
 			GetALLFile(path);
+			ALLList=filtrate(ALLList);
+	        if(ALLList ==null)
+	        {
+	        	return ;
+	        }
 			FileList=ALLList;
 			ALLList=new ArrayList<String>();
 			if(FileList!=null)
@@ -316,6 +446,11 @@ public class ComBin {
 		{
 			WriteFile file_scr=new WriteFile(work_space_path+"\\CUSTOMER");
 			GetAllScrFile(path);
+	        ALLList=filtrate(ALLList);
+	        if(ALLList ==null)
+	        {
+	        	return ;
+	        }
 			SrcFileList=ALLList;
 			ALLList=new ArrayList<String>();
 			if(SrcFileList!=null && !(SrcFileList.isEmpty()))
@@ -326,8 +461,6 @@ public class ComBin {
 				//WriteBlackSrc(file_scr);
 				file_scr.close();
 				console.Print("合并脚本完毕"+SrcFileList.toString());
-				
-				
 				WriteFile file_res=new WriteFile(work_space_path+"\\CUSTOMER_RES");
 				GetAllResFile(path);
 				ResFileList=ALLList;
@@ -341,7 +474,6 @@ public class ComBin {
 					file_scr.close();
 					console.Print("合并资源完毕"+ResFileList.toString());
 				}
-				
 			}
 			else
 			{
