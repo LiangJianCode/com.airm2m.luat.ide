@@ -159,6 +159,30 @@ public class ComBin {
 							"audiocore.lua","zlib.lua","crypto.lua","json.lua","coroutine.lua","table.lua","debug.lua","package.lua"};  
 		Tempfilelist=(ArrayList<String>) filelist.clone();
 		int flag_Main=0;
+		int copy_num=0;
+		for(String tmp_re:filelist)                        //检查是否有重复的脚本
+		{
+			for(String tmp_re0:filelist)                 
+			{
+				if(tmp_re0.equals(tmp_re))
+				{
+					if(copy_num >1)
+					{	
+						File tempFile1 =new File( tmp_re0.trim());  
+		            	String fileName1 = tempFile1.getName();  
+						System.out.println("文件"+fileName1+"重复，请删除一个");  
+	            		JOptionPane.showMessageDialog(null, "文件"+fileName1+"重复，请删除一个", "错误", JOptionPane.INFORMATION_MESSAGE);
+	            		return null;
+					}
+					else
+					{
+						copy_num=copy_num+1;
+					}
+
+				}
+			}
+			copy_num=0;
+		}
         for(String tmp:filelist){
             //System.out.println(tmp);
             ReadFile FILE= new ReadFile(tmp);
@@ -181,8 +205,8 @@ public class ComBin {
             	System.out.println(tmp_lib+"  "+fileName);
             	if(tmp_lib.equals(fileName) )
                 {
-            		System.out.println("文件"+tmp_lib+"和扩展卡命名重复，请重新命名");  
-            		JOptionPane.showMessageDialog(null, "文件"+tmp_lib+"和扩展卡命名重复，请重新命名", "错误", JOptionPane.INFORMATION_MESSAGE);
+            		System.out.println("文件"+tmp_lib+"和扩展库命名重复，请重新命名");  
+            		JOptionPane.showMessageDialog(null, "文件"+tmp_lib+"和扩展库命名重复，请重新命名", "错误", JOptionPane.INFORMATION_MESSAGE);
             		return null;
                 }
             }
@@ -407,7 +431,7 @@ public class ComBin {
 		
 	}
 
-	public  void LodComBin(String platform,boolean hostcompress)
+	public  boolean LodComBin(String platform,boolean hostcompress)
 	{	
 		getmsg();
 		String path=work_space_path+"\\"+TempPath;
@@ -419,7 +443,7 @@ public class ComBin {
 			ALLList=filtrate(ALLList);
 	        if(ALLList ==null)
 	        {
-	        	return ;
+	        	return false ;
 	        }
 			FileList=ALLList;
 			ALLList=new ArrayList<String>();
@@ -434,13 +458,14 @@ public class ComBin {
 				WriteBody(FileList,file,compress);
 				file.close();
 				console.Print("合并完毕"+FileList.toString());
+				return true;
 			}
 			else
 			{
 				JOptionPane.showMessageDialog(null, "工程脚本文件为空,或工程位置设置错误", "错误", JOptionPane.INFORMATION_MESSAGE);
 				ComBINsTATES=false;
 				
-				return ;
+				return false ;
 			}
 		}
 		else if(platform.equals("MTK"))
@@ -450,7 +475,7 @@ public class ComBin {
 	        ALLList=filtrate(ALLList);
 	        if(ALLList ==null)
 	        {
-	        	return ;
+	        	return false ;
 	        }
 			SrcFileList=ALLList;
 			ALLList=new ArrayList<String>();
@@ -474,6 +499,7 @@ public class ComBin {
 					//WriteBlackRes(file_res);
 					file_scr.close();
 					console.Print("合并资源完毕"+ResFileList.toString());
+					return true;
 				}
 			}
 			else
@@ -484,6 +510,7 @@ public class ComBin {
 
 		}
 	  ComBINsTATES=true;
+	  return false;
 	}
 	public boolean getCombinStatus()
 	{
