@@ -20,7 +20,7 @@ import SevenZip.LzmaAlone;
 
 
 public class ComBin {
-	ShowConsole console=new ShowConsole("combin");
+	static ShowConsole console=new ShowConsole("combin");
 	String work_space_path=null;
 	String TempPath=null;
 	String Plat_Type=null;
@@ -132,7 +132,7 @@ public class ComBin {
 			temp_modle_name=GetTrueModuleName(ss.substring(startIndex+7));
 			temp_modle_name=temp_modle_name+".lua";
 			listmodle.add(temp_modle_name);
-			//System.out.println(temp_modle_name);  
+			//console.Print(temp_modle_name);  
 			while(startIndex!=-1)
 			{
 				 startIndex=ss.indexOf("require", startIndex+7);
@@ -140,7 +140,7 @@ public class ComBin {
 				 {
 					 temp_modle_name=GetTrueModuleName(ss.substring(startIndex+7));
 					 temp_modle_name=temp_modle_name+".lua";
-					 //System.out.println(temp_modle_name);  
+					 //console.Print(temp_modle_name);  
 					 listmodle.add(temp_modle_name);
 				 }
 				 else
@@ -160,17 +160,21 @@ public class ComBin {
 		Tempfilelist=(ArrayList<String>) filelist.clone();
 		int flag_Main=0;
 		int copy_num=0;
+		console.Print("正在检查是否有重复的脚本...");
 		for(String tmp_re:filelist)                        //检查是否有重复的脚本
 		{
+			File tempFile1 =new File( tmp_re.trim());  
+        	String fileName1 = tempFile1.getName();  
 			for(String tmp_re0:filelist)                 
 			{
-				if(tmp_re0.equals(tmp_re))
+				File tempFile2 =new File( tmp_re0.trim());  
+	        	String fileName2 = tempFile2.getName();  
+				if(fileName2.equals(fileName1))
 				{
 					if(copy_num >1)
 					{	
-						File tempFile1 =new File( tmp_re0.trim());  
-		            	String fileName1 = tempFile1.getName();  
-						System.out.println("文件"+fileName1+"重复，请删除一个");  
+
+						console.Print("文件"+fileName2+"重复，请删除一个");  
 	            		JOptionPane.showMessageDialog(null, "文件"+fileName1+"重复，请删除一个", "错误", JOptionPane.INFORMATION_MESSAGE);
 	            		return null;
 					}
@@ -183,14 +187,16 @@ public class ComBin {
 			}
 			copy_num=0;
 		}
+		console.Print("正在正在筛选不需要的脚本...");
         for(String tmp:filelist){
-            //System.out.println(tmp);
+            //console.Print(tmp);
             ReadFile FILE= new ReadFile(tmp);
             byte[] Cellbody = new byte[FILE.len()];
             FILE.read(Cellbody);
             String t = new String(Cellbody);
             GetModul(t,truemodle);
         } 
+        console.Print("正在检查是否和扩展库重名...");
         for(String tem1:filelist)
         {
         	File tempFile =new File( tem1.trim());  
@@ -202,10 +208,10 @@ public class ComBin {
             }
             for(String tmp_lib:bArray)
             {
-            	System.out.println(tmp_lib+"  "+fileName);
+            	//console.Print(tmp_lib+"  "+fileName);
             	if(tmp_lib.equals(fileName) )
                 {
-            		System.out.println("文件"+tmp_lib+"和扩展库命名重复，请重新命名");  
+            		console.Print("文件"+tmp_lib+"和扩展库命名重复，请重新命名");  
             		JOptionPane.showMessageDialog(null, "文件"+tmp_lib+"和扩展库命名重复，请重新命名", "错误", JOptionPane.INFORMATION_MESSAGE);
             		return null;
                 }
@@ -376,13 +382,13 @@ public class ComBin {
 				outputname="Update_Air2xx";
 				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
 				GetALLFile(path);
-		        System.out.println(ALLList); 
+		        //console.Print(ALLList); 
 		        ALLList=filtrate(ALLList);
 		        if(ALLList ==null)
 		        {
 		        	return ;
 		        }
-		        System.out.println(ALLList); 
+		        //console.Print(ALLList); 
 				FileList=ALLList;
 				ALLList=new ArrayList<String>();
 				if(FileList!=null)
