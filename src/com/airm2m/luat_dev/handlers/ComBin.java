@@ -153,9 +153,10 @@ public class ComBin {
 	private static ArrayList<String> filtrate(ArrayList<String> filelist)
 	{
 		ArrayList<String>  truemodle=new ArrayList<String>();
-		ArrayList<String> Tempfilelist=new ArrayList<String>();
-		String[] aArray = new String[5];         
-		String[] bArray = {"coroutine.lua","string.lua","table.lua", "math.lua", "io.lua","os.lua","bit.lua","cpu.lua", "disp.lua", "i2c.lua","pack.lua","pio.lua", "pmd.lua","rtos.lua","uart.lua", "adc.lua", "iconv.lua","audiocore.lua","zlib.lua","crypto.lua","json.lua"};  
+		ArrayList<String> Tempfilelist=new ArrayList<String>();     
+		String[] bArray = {"coroutine.lua","string.lua","table.lua", "math.lua", "io.lua","os.lua","bit.lua","cpu.lua", 
+							"disp.lua", "i2c.lua","pack.lua","pio.lua", "pmd.lua","rtos.lua","uart.lua", "adc.lua", "iconv.lua",
+							"audiocore.lua","zlib.lua","crypto.lua","json.lua","coroutine.lua","table.lua","debug.lua","package.lua"};  
 		Tempfilelist=(ArrayList<String>) filelist.clone();
 		int flag_Main=0;
         for(String tmp:filelist){
