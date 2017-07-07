@@ -134,7 +134,13 @@ public class OriginalDownload {
 		handleOldPort();
 		console.Print("***********************开始下载(host)***************************");
 		combin=new ComBin();
-		combin.LodComBin("RDA",true);
+		boolean reuset_combin=combin.LodComBin("RDA",true);
+		if(!reuset_combin)
+		{
+			console.Print("***********************下载结束（合并失败）***************************");
+			DownlodState=false;
+			return ;
+		}
 		try {
 			 path=Platform.asLocalURL(Platform.getBundle("com.airm2m.luat_dev").getEntry("")).getFile();
 		} catch (IOException e) {
@@ -277,13 +283,18 @@ public class OriginalDownload {
 	{
 		return read_value(CMD_RD_DWORD, 0x01a24000,2000);
 	}
-	private void read_scr_are()
+	private boolean read_scr_are()
 	{
 		int base_addr = read_value(CMD_RD_DWORD, 0x88000004,2000);
 		SCRIPT_DATA_BASE=base_addr;
-		
 		SCRIPT_DATA_LEN=read_value(CMD_RD_DWORD, 0x88000008,2000);
 		console.Print("读取脚本下载区信息:起始地址"+base_addr+"区域大小:"+SCRIPT_DATA_LEN);	
+		if((SCRIPT_DATA_BASE>0x200000) & (SCRIPT_DATA_BASE < 0x3c00000) &((SCRIPT_DATA_BASE)%(0x10000)==0))
+			return true;
+		else
+			return false;
+					
+		
 	}
 
 	
@@ -292,123 +303,132 @@ public class OriginalDownload {
 		int cmdbuf_index=0;
 		int rambuf_index=0;
 		console.Print("开始下载脚本");
-		read_scr_are();
-		List<Integer>  fpc_access = read_fpc_access();
-		List<Integer>  fpc_access_cmd = new ArrayList<Integer>();
-		fpc_access_cmd.add(fpc_access.get(0));
-		fpc_access_cmd.add(fpc_access.get(1));
-		List<Integer>  fpc_access_ram =new ArrayList<Integer>();
-		fpc_access_ram.add(fpc_access.get(2));
-		fpc_access_ram.add(fpc_access.get(3));
-		fpc_access_ram.add(fpc_access.get(4));
-		int bufsize=fpc_access.get(5);
-		boolean wait=false;
-		byte[] data=combinAndRead(path);
-		if(data.length >SCRIPT_DATA_LEN)
+		if(read_scr_are())
 		{
-			combin.LodComBin("RDA",false);  //如果脚本文件大于脚本空间，那么就压缩
-			data=combinAndRead(path);
+			List<Integer>  fpc_access = read_fpc_access();
+			List<Integer>  fpc_access_cmd = new ArrayList<Integer>();
+			fpc_access_cmd.add(fpc_access.get(0));
+			fpc_access_cmd.add(fpc_access.get(1));
+			List<Integer>  fpc_access_ram =new ArrayList<Integer>();
+			fpc_access_ram.add(fpc_access.get(2));
+			fpc_access_ram.add(fpc_access.get(3));
+			fpc_access_ram.add(fpc_access.get(4));
+			int bufsize=fpc_access.get(5);
+			boolean wait=false;
+			byte[] data=combinAndRead(path);
 			if(data.length >SCRIPT_DATA_LEN)
 			{
-				console.Print("脚本文件过大,请裁剪");	
-				return false;
-			}
-		}
-		HOST_MAX_PACKET=bufsize;
-		int addr=SCRIPT_DATA_BASE;
-		int esr_mor=0;
-		byte[] fcsend=fcsclr(data,SCRIPT_DATA_BASE);
-		int ersNum=(0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN))/FLASH_ERARE_SIZE;
-		
-		int esr_mor_user=0;
-		if((0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN))%FLASH_ERARE_SIZE!=0)
-			esr_mor_user=1;
-		console.Print("开始擦除文件系统");
-		for(int s=0;s<ersNum+esr_mor_user;s++)
-		{
-			int esr_size=FLASH_ERARE_SIZE;
-			if((0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN)) -(s*FLASH_ERARE_SIZE)<FLASH_ERARE_SIZE)
-				esr_size=(0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN)) -(s*FLASH_ERARE_SIZE);
-			//console.Print("擦除文件:"+s+" 大小:"+esr_size);
-	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,SCRIPT_DATA_BASE+SCRIPT_DATA_LEN,fpc_access_ram.get(rambuf_index%3),esr_size,0));        
-	        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_ERASE_SECTOR);
-	        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-	    		return false;
-	        cmdbuf_index ^= 0x01;
-		}
-		console.Print("擦除文件系统完成");
-		
-		if((data.length)%FLASH_ERARE_SIZE!=0)
-			esr_mor=1;
-		for(int j=0;j<(data.length)/FLASH_ERARE_SIZE+esr_mor;j++)
-		{
-			int esr_Num = FLASH_ERARE_SIZE*j+FLASH_ERARE_SIZE;
-			//console.Print("擦除flash:"+j+":地址:"+(addr+FLASH_ERARE_SIZE*j));
-	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,SCRIPT_DATA_BASE+FLASH_ERARE_SIZE*j,fpc_access_ram.get(rambuf_index%3),FLASH_ERARE_SIZE,0));        
-	        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_ERASE_SECTOR);
-	        int lod_mor=0;
-        	if((data.length-(j*FLASH_ERARE_SIZE)>HOST_MAX_PACKET))
-				lod_mor=1;
-	        for(int i=j*2;i<j*2+1+lod_mor;i++)
-	        {
-	        	console.Print("发送下载脚本包:"+(i+1)+"/"+((data.length)/section+1));
-	        	int write_num=HOST_MAX_PACKET;
-				int lod_Num = HOST_MAX_PACKET*i+HOST_MAX_PACKET;
-				if(lod_Num>data.length)
+				console.Print("正在压缩文件");	
+				combin.LodComBin("RDA",false);  //如果脚本文件大于脚本空间，那么就压缩
+				data=combinAndRead(path);
+				if(data.length >SCRIPT_DATA_LEN)
 				{
-					lod_Num=data.length;
-					write_num=data.length-(i*HOST_MAX_PACKET);
-				}
-				write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)),Arrays.copyOfRange(data, i*HOST_MAX_PACKET,lod_Num));
-		        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-		            		return false;
-		        cmdbuf_index ^= 0x01;
-		        	
-	            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr,fpc_access_ram.get(rambuf_index%3),write_num,ByteArryToInt_Little(fcsend,i*12+8,i*12+11)));
-	            write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_PROGRAM);
-	           
-	            rambuf_index += 1;
-	            wait=true;
-	            addr=addr+HOST_MAX_PACKET;
-	    		if(DownlodState==false)
-				{
+					console.Print("脚本文件过大,请裁剪");	
 					return false;
 				}
-	        }
-            if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-        		return false;
-            cmdbuf_index ^= 0x01;
-		}
-		console.Print("下载脚本数据完成");
-		
-		write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), fcsend);
-        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,0,fpc_access_ram.get(rambuf_index%3),(fcsend.length)/12,0));
-        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_CHECK_FCS);
-		
-        cmdbuf_index ^= 0x01;
-    	if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-    		return false;
-    	console.Print("下载校验码完成");
-        cmdbuf_index ^= 0x01;
-        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-    		return false;
+			}
+			HOST_MAX_PACKET=bufsize;
+			int addr=SCRIPT_DATA_BASE;
+			int esr_mor=0;
+			byte[] fcsend=fcsclr(data,SCRIPT_DATA_BASE);
+			int ersNum=(0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN))/FLASH_ERARE_SIZE;
+			
+			int esr_mor_user=0;
+			if((0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN))%FLASH_ERARE_SIZE!=0)
+				esr_mor_user=1;
+			console.Print("开始擦除文件系统");
+			for(int s=0;s<ersNum+esr_mor_user;s++)
+			{
+				int esr_size=FLASH_ERARE_SIZE;
+				if((0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN)) -(s*FLASH_ERARE_SIZE)<FLASH_ERARE_SIZE)
+					esr_size=(0x003FB000-(SCRIPT_DATA_BASE+SCRIPT_DATA_LEN)) -(s*FLASH_ERARE_SIZE);
+				//console.Print("擦除文件:"+s+" 大小:"+esr_size);
+		        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,SCRIPT_DATA_BASE+SCRIPT_DATA_LEN,fpc_access_ram.get(rambuf_index%3),esr_size,0));        
+		        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_ERASE_SECTOR);
+		        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+		    		return false;
+		        cmdbuf_index ^= 0x01;
+			}
+			console.Print("擦除文件系统完成");
+			
+			if((data.length)%FLASH_ERARE_SIZE!=0)
+				esr_mor=1;
+			for(int j=0;j<(data.length)/FLASH_ERARE_SIZE+esr_mor;j++)
+			{
+				int esr_Num = FLASH_ERARE_SIZE*j+FLASH_ERARE_SIZE;
+				//console.Print("擦除flash:"+j+":地址:"+(addr+FLASH_ERARE_SIZE*j));
+		        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,SCRIPT_DATA_BASE+FLASH_ERARE_SIZE*j,fpc_access_ram.get(rambuf_index%3),FLASH_ERARE_SIZE,0));        
+		        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_ERASE_SECTOR);
+		        int lod_mor=0;
+	        	if((data.length-(j*FLASH_ERARE_SIZE)>HOST_MAX_PACKET))
+					lod_mor=1;
+		        for(int i=j*2;i<j*2+1+lod_mor;i++)
+		        {
+		        	console.Print("发送下载脚本包:"+(i+1)+"/"+((data.length)/section+1));
+		        	int write_num=HOST_MAX_PACKET;
+					int lod_Num = HOST_MAX_PACKET*i+HOST_MAX_PACKET;
+					if(lod_Num>data.length)
+					{
+						lod_Num=data.length;
+						write_num=data.length-(i*HOST_MAX_PACKET);
+					}
+					write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)),Arrays.copyOfRange(data, i*HOST_MAX_PACKET,lod_Num));
+			        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+			            		return false;
+			        cmdbuf_index ^= 0x01;
+			        	
+		            write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,addr,fpc_access_ram.get(rambuf_index%3),write_num,ByteArryToInt_Little(fcsend,i*12+8,i*12+11)));
+		            write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_PROGRAM);
+		           
+		            rambuf_index += 1;
+		            wait=true;
+		            addr=addr+HOST_MAX_PACKET;
+		    		if(DownlodState==false)
+					{
+						return false;
+					}
+		        }
+	            if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+	        		return false;
+	            cmdbuf_index ^= 0x01;
+			}
+			console.Print("下载脚本数据完成");
+			
+			write_block(IntToByte_Little(fpc_access_ram.get(rambuf_index%3)), fcsend);
+	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(0,0,fpc_access_ram.get(rambuf_index%3),(fcsend.length)/12,0));
+	        write_value(CMD_WR_DWORD, fpc_access_cmd.get(cmdbuf_index), FPC_CHECK_FCS);
+			
+	        cmdbuf_index ^= 0x01;
+	    	if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+	    		return false;
+	    	console.Print("下载校验码完成");
+	        cmdbuf_index ^= 0x01;
+	        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+	    		return false;
 
-        cmdbuf_index ^= 0x01;
-        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(FPC_END,0,0,0,0));
-        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-    		return false;
-        try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-        cmdbuf_index ^= 0x01;
-        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)),packFpcCmd(FPC_RESTART,0,0,0,0));
-        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
-    		return false;
-        //self._delay(1000)
-		return true;
+	        cmdbuf_index ^= 0x01;
+	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)), packFpcCmd(FPC_END,0,0,0,0));
+	        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+	    		return false;
+	        try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+	        cmdbuf_index ^= 0x01;
+	        write_block(IntToByte_Little(fpc_access_cmd.get(cmdbuf_index)),packFpcCmd(FPC_RESTART,0,0,0,0));
+	        if(!wait_lod_event(EVENT_FLASH_PROG_READY+cmdbuf_index,7000))
+	    		return false;
+	        //self._delay(1000)
+			return true;
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(null, "基础软件不对,请更新基础软件(使用LUAT_AIR2XX_升级工具)", "错误", JOptionPane.INFORMATION_MESSAGE);
+			return false;
+		}
+	
 	}
 	private  boolean wait_event(int event,int timer)
 	{
