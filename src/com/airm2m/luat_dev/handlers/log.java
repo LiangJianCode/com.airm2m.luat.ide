@@ -21,7 +21,9 @@ import com.airm2m.serialException.NoSuchPort;
 import com.airm2m.serialException.NotASerialPort;
 import com.airm2m.serialException.PortInUse;
 import com.airm2m.serialException.ReadDataFromSerialPortFailure;
+import com.airm2m.serialException.SendDataToSerialPortFailure;
 import com.airm2m.serialException.SerialPortInputStreamCloseFailure;
+import com.airm2m.serialException.SerialPortOutputStreamCloseFailure;
 import com.airm2m.serialException.SerialPortParameterFailure;
 import com.airm2m.serialException.TooManyListeners;
 import com.airm2m.serialPort.SerialTool;
@@ -154,10 +156,17 @@ public class log extends Thread{
 				{
 					byte[] restart={(byte) 0xAD,0x00,0x06,(byte) 0xFF,0x00,0x57,0x00,0x00,0x00,(byte) 0xA8};
 					byte[] restart_hard={(byte) 0xAD,0x00,0x06,(byte) 0xFF,0x00,(byte) 0xff,(byte) 0xff,(byte) 0xff,(byte) 0xff,(byte) 0xff};
+					byte[] start_catch_log_event={(byte) 0xAD,0x00,0x06,(byte) 0xff,0x00,0x5c,(byte) 0xee,(byte) 0xa1,0x1b,(byte) 0xba};
 					if(Arrays.equals(all_dl_data,restart))
 						console.Print("---------------------Detected system reset (0x57).--------------------");
 					else if(Arrays.equals(all_dl_data,restart_hard))
 						console.Print("---------------------Detected hardware reset (0xffffffff).--------------------");
+					else if(Arrays.equals(all_dl_data,start_catch_log_event))
+						{
+							console.Print("---------------------send log start.--------------------");
+							start_snif_log();
+						}
+					//console.printHexString(all_dl_data);
 				}
 
 			}
@@ -211,6 +220,7 @@ public class log extends Thread{
 			console.Print("***********************开始打印trace***************************");
 			console.Print("log协议:"+LOG_type);
 			LogPort=OpenDownLoadPort(RellPort);
+			start_snif_log();
 		}
 		
 		Timer timer = new Timer();
@@ -299,6 +309,19 @@ public class log extends Thread{
 		    }
 		}
 	}
+	private void start_snif_log()
+	{
+		byte[] start_logs={(byte) 0xad,0x00,0x05,(byte) 0x86,0x00,0x01,0x08,0x00,(byte) 0x8f};
+		try {
+			SerialTool.sendToPort(LogPort,start_logs);
+		} catch (SendDataToSerialPortFailure e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SerialPortOutputStreamCloseFailure e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	private SerialPort OpenDownLoadPort(String port)
 	{ 	
 		SerialPort tempPort = null;
@@ -310,6 +333,7 @@ public class log extends Thread{
     		else
     			pot=921600;
 			tempPort=SerialTool.openPort(port, pot);
+
 		} catch (SerialPortParameterFailure e) {
 			// TODO Auto-generated catch block
 			console.Print("打开log串口失败");

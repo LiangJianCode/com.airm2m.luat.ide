@@ -142,7 +142,7 @@ public class OriginalDownload {
 			e.printStackTrace();
 		}
 		try {
-			lodResult=start(path+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod",LodFile);
+			lodResult=start(path,LodFile);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -272,6 +272,10 @@ public class OriginalDownload {
 			cellheadbuff.putInt(base_add+(i*section)).putInt(lens).putInt(fcsbuf.get(i));
 		}
 		return cellheadbuff.array();
+	}
+	private int  read_chip_id()
+	{
+		return read_value(CMD_RD_DWORD, 0x01a24000,2000);
 	}
 	private void read_scr_are()
 	{
@@ -720,7 +724,7 @@ public class OriginalDownload {
 		pump_on_buf.put(CMD_WR_BLOCK).put(address).put(value);
 		write(write_packet(CMD_ID,pump_on_buf.array()));
 	}
-	private boolean SEND_DL_SYNC()
+	private int SEND_DL_SYNC()
 	{
 		console.Print("等待握手......................");
 		//System.out.println("等待握手");
@@ -729,27 +733,30 @@ public class OriginalDownload {
 		{
 			int value=read_value(CMD_RD_DWORD,0x01A24004,200);
 			//read_value(CMD_RD_DWORD,0x01A24004);
-			if(value==0x10090911 || value == 0x09120711 || value == 0xFFFFFFFF)
+			if(value==0x10090911 || value == 0x09120711 || value == 0xFFFFFFFF || value ==0x10220027)
 			{
 				console.Print("握手成功");
-				return true;
+				return value;
 			}
 			if(DownlodState==false)
 			{
-				return false;
+				return 0;
 			}
 		}
 		JOptionPane.showMessageDialog(null, "请确保设备处于唤醒状态(可以通过重新上电实现)", "错误", JOptionPane.INFORMATION_MESSAGE);
-		return false;
+		return 0;
 
 	}
+	
 	public  boolean start(String RamrunpPath,String ScrpPt) throws IOException
 	{
 		
 		DownPort=OpenDownLoadPort(comport);
+		List<byte[]> unpackRam;
 		if(DownPort==null)
 			return false;
-		if(SEND_DL_SYNC())
+		int chip_id=SEND_DL_SYNC();
+		if(chip_id!=0)
 		{
 			chip_xfbp();
 			if(enter_host_mode())
@@ -758,7 +765,24 @@ public class OriginalDownload {
 					{
 						return false;
 					}
-					List<byte[]> unpackRam=UnpackRamrun(RamrunpPath);
+					if(chip_id == 0x10090911)
+					{
+						unpackRam=UnpackRamrun(RamrunpPath+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod");
+						console.Print("该芯片是:AIR200");
+					}
+					else if(chip_id == 0x10220027)
+					{
+						unpackRam=UnpackRamrun(RamrunpPath+"\\ramrun\\flsh_spi32m_8955_ramrun.lod");
+						console.Print("该芯片是:AIR202");
+					}
+					else
+					{
+						JOptionPane.showMessageDialog(null, "读取芯片ID出错)", "错误", JOptionPane.INFORMATION_MESSAGE);
+						console.Print("读取芯片ID出错~~~~~~~~~~~~~~~~~"+chip_id);
+						SerialTool.closePort(DownPort);
+						return true;
+					}
+					
 					if(download_ramrun(unpackRam))
 					{
 						console.Print("下载ramrun成功");
