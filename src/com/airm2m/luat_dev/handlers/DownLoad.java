@@ -223,7 +223,13 @@ public class DownLoad extends Thread{
 				if(SEND_DL_SYNC())      									 					//发送握手命令
 				{		
 					ComBin combin=new ComBin();
-					combin.LodComBin(PlatForm,false);
+					
+					if(!combin.LodComBin(PlatForm,false))
+					{
+						console.Print("***********************下载结束（合并失败）***************************");
+						DownlodState=false;
+						return ;
+					}
 					if(!combin.getCombinStatus())
 					{
 						SerialTool.closePort(DownPort);
