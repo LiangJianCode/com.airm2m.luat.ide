@@ -162,7 +162,7 @@ public class ComBin {
 		ArrayList<String> Tempfilelist=new ArrayList<String>();     
 		String[] bArray = {"coroutine.lua","string.lua","table.lua", "math.lua", "io.lua","os.lua","bit.lua","cpu.lua", 
 							"disp.lua", "i2c.lua","pack.lua","pio.lua", "pmd.lua","rtos.lua","uart.lua", "adc.lua", "iconv.lua",
-							"audiocore.lua","zlib.lua","crypto.lua","json.lua","coroutine.lua","table.lua","debug.lua","package.lua"};  
+							"audiocore.lua","zlib.lua","crypto.lua","json.lua","coroutine.lua","table.lua","debug.lua","package.lua","tcpipsock.lua","watchdog.lua"};  
 		Tempfilelist=(ArrayList<String>) filelist.clone();
 		int flag_Main=0;
 		int copy_num=0;
