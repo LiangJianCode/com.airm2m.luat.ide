@@ -127,11 +127,15 @@ public class ComBin {
 		int startIndex =0;
 		String temp_modle_name = null;
 		startIndex=ss.indexOf("require", startIndex);
+
 		if (startIndex!=-1)
 		{
 			temp_modle_name=GetTrueModuleName(ss.substring(startIndex+7));
-			temp_modle_name=temp_modle_name+".lua";
-			listmodle.add(temp_modle_name);
+			if(!temp_modle_name.equals(""))
+			{
+				temp_modle_name=temp_modle_name+".lua";
+				listmodle.add(temp_modle_name);
+			}
 			//console.Print(temp_modle_name);  
 			while(startIndex!=-1)
 			{
@@ -139,9 +143,11 @@ public class ComBin {
 				 if(startIndex !=-1)
 				 {
 					 temp_modle_name=GetTrueModuleName(ss.substring(startIndex+7));
-					 temp_modle_name=temp_modle_name+".lua";
-					 //console.Print(temp_modle_name);  
-					 listmodle.add(temp_modle_name);
+					if(!temp_modle_name.equals(""))
+					{
+						temp_modle_name=temp_modle_name+".lua";
+						listmodle.add(temp_modle_name);
+					}
 				 }
 				 else
 				 {
@@ -160,6 +166,7 @@ public class ComBin {
 		Tempfilelist=(ArrayList<String>) filelist.clone();
 		int flag_Main=0;
 		int copy_num=0;
+		int file_exist_flg=0;
 		console.Print("正在检查是否有重复的脚本...");
 		for(String tmp_re:filelist)                        //检查是否有重复的脚本
 		{
@@ -171,9 +178,8 @@ public class ComBin {
 	        	String fileName2 = tempFile2.getName();  
 				if(fileName2.equals(fileName1))
 				{
-					if(copy_num >1)
+					if(copy_num >0)
 					{	
-
 						console.Print("文件"+fileName2+"重复，请删除一个");  
 	            		JOptionPane.showMessageDialog(null, "文件"+fileName1+"重复，请删除一个", "错误", JOptionPane.INFORMATION_MESSAGE);
 	            		return null;
@@ -194,6 +200,7 @@ public class ComBin {
             byte[] Cellbody = new byte[FILE.len()];
             FILE.read(Cellbody);
             String t = new String(Cellbody);
+    		//console.Print("文件里寻找require文件:"+tmp);
             GetModul(t,truemodle);
         } 
         console.Print("正在检查是否和扩展库重名...");
@@ -216,10 +223,43 @@ public class ComBin {
             		return null;
                 }
             }
-        	if(truemodle.indexOf(fileName)==-1)
+        	if(truemodle.indexOf(fileName)==-1)                   //查询是否需要这个模块，如果不需要就删除这个模块
         	{
         		Tempfilelist.remove(tem1);
         	}
+        	
+        }
+        console.Print("正在检查是否缺少客户require文件....");
+        for(String tem4:truemodle)                                //查询是否缺少这个模块
+        {
+        	File tempFile4 =new File( tem4.trim());  
+            String fileName4 = tempFile4.getName();  
+            for(String tem5:filelist)                             //在用户脚本中查询
+            {
+            	File tempFile5 =new File( tem5.trim());  
+                String fileName5 = tempFile5.getName();  
+                if(fileName4.equals(fileName5))
+                {
+                	file_exist_flg=1;
+                }
+            }
+            if(file_exist_flg==0)									//在用户脚本里面没有发现这个脚本时
+            {
+	            for(String tem6:bArray)								//在扩展库和lua库列表查询
+	            {
+	            	if(tem6.equals(fileName4))
+	            	{
+	            		file_exist_flg=1;
+	            	}
+	            }
+	            if(file_exist_flg==0)
+	            {
+	            	console.Print("require文件"+fileName4+"但是没有添加入workspace");
+	            	JOptionPane.showMessageDialog(null, "require文件"+fileName4+"但是没有添加入workspace", "错误", JOptionPane.INFORMATION_MESSAGE);
+	            	return null;
+	            }
+            }
+            file_exist_flg=0;
         }
         if(flag_Main==0)
         {
