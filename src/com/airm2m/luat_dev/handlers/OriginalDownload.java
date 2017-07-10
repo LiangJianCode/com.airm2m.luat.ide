@@ -988,7 +988,7 @@ public class OriginalDownload {
 				byte[] data = null;
 				try {
 					if (DownPort == null) {
-						JOptionPane.showMessageDialog(null, "´®¿Ú¶ÔÏóÎª¿Õ£¡¼àÌýÊ§°Ü£¡", "´íÎó", JOptionPane.INFORMATION_MESSAGE);
+						console.Print("´®¿Ú¶ÔÏóÎª¿Õ£¡¼àÌýÊ§°Ü£¡");
 						return ;
 					}
 					else {

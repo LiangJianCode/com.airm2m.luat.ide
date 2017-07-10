@@ -287,7 +287,7 @@ public class log extends Thread{
 				byte[] data = null;
 				try {
 					if (LogPort == null) {
-						JOptionPane.showMessageDialog(null, "串口对象为空！监听失败！", "错误", JOptionPane.INFORMATION_MESSAGE);
+						console.Print("串口对象为空！监听失败！");
 					}
 					else {
 						data = SerialTool.readFromPort(LogPort);	//读取数据，存入字节数组
