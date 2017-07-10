@@ -226,15 +226,9 @@ public class DownLoad extends Thread{
 					
 					if(!combin.LodComBin(PlatForm,false))
 					{
+						SerialTool.closePort(DownPort);
 						console.Print("***********************下载结束（合并失败）***************************");
 						DownlodState=false;
-						return ;
-					}
-					if(!combin.getCombinStatus())
-					{
-						SerialTool.closePort(DownPort);
-						DownlodState=false;
-						console.Print("***********************合并出错停止下载***************************");
 						return ;
 					}
 					if(PlatForm.equals("RDA"))
