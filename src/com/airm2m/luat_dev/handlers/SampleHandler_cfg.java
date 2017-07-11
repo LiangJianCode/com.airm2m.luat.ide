@@ -183,7 +183,7 @@ class ShowConfig extends ApplicationWindow {
 	{
 		TabItem tabItem_2 = new TabItem(parent, SWT.NONE);
 		tabItem_2.setText("host");
-		
+
 		Group grpHost = new Group(parent, SWT.NONE);
 		grpHost.setText("host口下载和打印");
 		tabItem_2.setControl(grpHost);
@@ -320,7 +320,7 @@ class ShowConfig extends ApplicationWindow {
 
 		
 		tabItem_1.setText("AIR8XX");
-		
+
 		
 		Group grpAirxx_1 = new Group(parent, SWT.NONE);
 		//grpAirxx_1.setText("AIR8XX\u914D\u7F6E\u5361");
@@ -540,9 +540,13 @@ class cfg_thread
 		try {
 			console.Print("findport");
 			allPort=SerialTool.findPort();
+			
 			allPort.add("");
 			console.Print("findport end");
 			ShowConfig window1 = new ShowConfig();
+			if(allPort.size()==1)
+				console.Print("\r\n**********************提示**********************\r\n   请查看设备管理器中是否有此端口\r\n 1:如果有此端口,请先禁用再启用,\r\n 2:如果没有这个端口,请确保是否安装串口驱动\r\n 3:Air810用户请注意,请不要把usb当成了串口");
+
 			window1.AddStartMsg(allPort,workSpace,FileList,window1,console);
 			window1.setBlockOnOpen(true);
 			window1.open();
