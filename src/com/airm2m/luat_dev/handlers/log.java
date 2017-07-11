@@ -46,6 +46,7 @@ public class log extends Thread{
 	String RellPort="";
 	boolean Log_type=true;
 	static boolean log_status=false;
+	String Log_task="";
 	private Properties getProperties()
 	{
 		String cfg_file=Platform.getInstanceLocation().getURL().getPath();
@@ -102,7 +103,20 @@ public class log extends Thread{
 		}
 		return data.length;
 	}
-	
+	private void log_output_handle(String logs)
+	{
+		int end_flag=0;
+		Log_task=Log_task+logs;
+		end_flag=Log_task.indexOf("\r\n", 0);
+		//console.Print("~~~~~~~~~~~~~~~~~~"+end_flag+":"+Log_task);
+		while(end_flag!=-1)
+		{
+			console.Print(Log_task.substring(0,end_flag));
+			Log_task=Log_task.substring(end_flag+2);
+			end_flag=Log_task.indexOf("\r\n", 0);
+		}
+		
+	}
 	private void handleRcvByte(byte[] data)
 	{
 	 switch (temprcvchainingFlag) {
@@ -254,7 +268,8 @@ public class log extends Thread{
 		else
 		{
 			try {
-				console.Print(new String(data,"ascii"));
+				log_output_handle(new String(data,"ascii"));
+				
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
