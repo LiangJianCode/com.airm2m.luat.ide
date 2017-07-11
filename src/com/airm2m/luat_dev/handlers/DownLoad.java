@@ -522,9 +522,16 @@ public class DownLoad extends Thread{
 		{
 			if(PlatForm==null )
 		    {
+				//console.Print(" "+(System.currentTimeMillis()-startSendTime));
 	   			if((System.currentTimeMillis()-startSendTime)>40000)
 				   {
 	   					JOptionPane.showMessageDialog(null, "没有检测到握手回复,请确认有没有重新上电", "错误", JOptionPane.INFORMATION_MESSAGE);
+	   					console.Print("*********************提示*********************");
+   						console.Print("如果是Air200 S1开发板，电源拨杆开关打到ON，按reset键，即可触发下载流程。如果此时已经是开机状态，则按下reset即可触发下载流程。");
+   						console.Print("如果是Air200 S3开发板，直接上电即可触发下载。如果此时已经是开机状态，则重新上电即可触发下载。");
+   						console.Print("如果是Air202 S5开发板，电源拨杆开关打到ON,再按PWER_KEY两秒可触发下载。");
+   						console.Print("如果是Air810 M2开发板，电源拨杆开关打到ON,然后短按一次REST按键，开发板会重启，等待大约5s后，可触发下载流程。如果此时已经是开机状态，则按下reset即可触发下载流程。");
+
 	   					return false;
 				   }
 	   			else if((!DownlodState))
@@ -683,6 +690,7 @@ public class DownLoad extends Thread{
 			// TODO Auto-generated catch block
 			console.Print("发送串口命令失败"+e.getMessage());
 			SerialTool.closePort(DownPort);
+			DownlodState=false;
 			return false;
 		} catch (SerialPortOutputStreamCloseFailure e) {
 			// TODO Auto-generated catch block
@@ -702,6 +710,7 @@ public class DownLoad extends Thread{
 		} catch (SerialPortParameterFailure e) {
 			// TODO Auto-generated catch block
 			console.Print("打开串口失败");
+			DownlodState=false;    
 			JOptionPane.showMessageDialog(null, "打开串口失败", "错误", JOptionPane.INFORMATION_MESSAGE);
 			e.printStackTrace();
 			return null;
@@ -714,6 +723,7 @@ public class DownLoad extends Thread{
 		} catch (NoSuchPort e) {
 			// TODO Auto-generated catch block
 			console.Print("没有这样的串口");
+			DownlodState=false;    
 			JOptionPane.showMessageDialog(null, "没有这样的串口", "错误", JOptionPane.INFORMATION_MESSAGE);
 			e.printStackTrace();
 			return null;
