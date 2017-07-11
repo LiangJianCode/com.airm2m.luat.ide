@@ -545,7 +545,7 @@ class cfg_thread
 			console.Print("findport end");
 			ShowConfig window1 = new ShowConfig();
 			if(allPort.size()==1)
-				console.Print("\r\n**********************提示**********************\r\n   请查看设备管理器中是否有此端口\r\n 1:如果有此端口,请先禁用再启用,\r\n 2:如果没有这个端口,请确保是否安装串口驱动\r\n 3:Air810用户请注意,请不要把usb当成了串口");
+				console.Print("\r\n**********************提示**********************\r\n   请查看设备管理器中是否有此端口\r\n 1:如果有此端口,请先禁用再启用,\r\n 2:如果没有这个端口,请确保是否安装串口驱动\r\n 3:Air810用户请注意,请使用UART1或者UART3下载脚本(USB口不能单独下载脚本!)");
 
 			window1.AddStartMsg(allPort,workSpace,FileList,window1,console);
 			window1.setBlockOnOpen(true);
