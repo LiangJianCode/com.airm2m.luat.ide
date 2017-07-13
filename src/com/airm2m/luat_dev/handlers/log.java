@@ -160,7 +160,7 @@ public class log extends Thread{
 					System.arraycopy(print_buf, 0, print_buf_true, 0,trueflag);
 					String s = null;
 					try {
-						s = new String(print_buf_true,"ascii");
+						s = new String(print_buf_true,"gbk");
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
@@ -268,7 +268,7 @@ public class log extends Thread{
 		else
 		{
 			try {
-				log_output_handle(new String(data,"ascii"));
+				log_output_handle(new String(data,"gbk"));
 				
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
