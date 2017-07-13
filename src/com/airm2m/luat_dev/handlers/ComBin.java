@@ -25,6 +25,7 @@ public class ComBin {
 	String TempPath=null;
 	String Plat_Type=null;
 	File tempZipfile;
+    String WorkSpace_Path;
 	private ArrayList<String> FileList = new ArrayList<String>();
 	private ArrayList<String> SrcFileList = new ArrayList<String>();
 	private ArrayList<String> ResFileList = new ArrayList<String>();
@@ -82,7 +83,7 @@ public class ComBin {
 	{
 		return path.trim().substring(path.trim().lastIndexOf("\\")+1);  
 	}
-	private static String GetTrueModuleName(String ModuleName)
+	private  String GetTrueModuleName(String ModuleName)
 	{
 		String TrueModuleName="";
 		int step1_find_flg=1;        // 为1的时候，代表开始寻找，2的时候代表找的require的头部，3的时候代表寻找结束
@@ -122,7 +123,93 @@ public class ComBin {
 		TrueModuleName=ModuleName.substring(strnum,endnum);
 		return TrueModuleName; 
 	}
-	private static void GetModul(String ss, ArrayList<String>  listmodle)
+	private  int GetNumberStr(String context,String target)
+	{
+		int ss=0;
+		int target_flg=context.indexOf(target,0);
+		while(target_flg!=-1)
+		{
+			ss=ss+1;
+			target_flg=context.indexOf(target,target_flg+target.length());
+		}
+		return ss;
+	}
+	private  String Concat_String(String Context,int start,int  end)
+	{
+		String Temp_Context;
+		int line_num=0;
+		String replaceString="";
+		Temp_Context =Context.substring(start, end);
+		line_num=GetNumberStr(Temp_Context,"\n");
+		for(int i=0;i<line_num;i++)
+		{
+			replaceString=replaceString+"\n";
+		}
+		return Context.substring(0,start)+replaceString+Context.substring(end);
+	}
+	private  String  Del_Note_Handle(String Context,int Note_start)
+	{
+		int Note_end=0;
+	
+		if(Context.substring(Note_start+2,Note_start+8).equals("[====["))
+		{
+			//console.Print("--[====[");
+			Note_end= Context.indexOf("]====]", Note_start);
+			if(Note_end==-1)
+			{
+				return "";
+			}
+			//console.Print(""+Note_end);
+			return Concat_String(Context,Note_start,Note_end+6);
+		}
+		else if(Context.substring(Note_start+2,Note_start+4).equals("[["))
+		{
+			//console.Print("--[[");
+			Note_end= Context.indexOf("]]", Note_start);
+			if(Note_end==-1)
+			{
+				return "";
+			}
+			//console.Print(""+Note_end);
+			return Concat_String(Context,Note_start,Note_end+2);
+		}
+		else
+		{
+			//console.Print("--");
+			Note_end= Context.indexOf("\n", Note_start);
+			//console.Print("Note_end:"+Note_end+" Note_start:"+Note_start);
+			if(Note_end==-1)
+			{
+				return "";
+			}
+			
+			return Concat_String(Context,Note_start,Note_end);
+		}
+	}
+	
+	private  String Del_Modul_note(String context)
+	{ 
+		int startIndex =0;
+		String context_temp=context;
+		startIndex=context_temp.indexOf("--", startIndex);
+		//console.Print("Del_Modul_note");
+		//console.Print(""+startIndex);
+		while (startIndex!=-1)
+		{
+			
+			context_temp=Del_Note_Handle(context_temp,startIndex);
+			if(context_temp.equals(""))
+			{
+				return "";
+			}
+			//console.Print(context_temp);
+			startIndex=context_temp.indexOf("--", 0);
+			//console.Print(""+startIndex);
+			//console.Print(temp_modle_name);  
+		}
+		return context_temp;
+	}
+	private  void GetModul(String ss, ArrayList<String>  listmodle)
 	{ 
 		int startIndex =0;
 		String temp_modle_name = null;
@@ -156,17 +243,51 @@ public class ComBin {
 			} 
 		}
 	}
-	private static ArrayList<String> filtrate(ArrayList<String> filelist)
+	public  boolean createFile(String filePath) {
+		File file = new File(filePath);
+		if (file.exists()) {// 判断文件是否存在
+			System.out.println("目标文件已存在" + filePath);
+			return false;
+		}
+		if (filePath.endsWith(File.separator)) {// 判断文件是否为目录
+			System.out.println("目标文件不能为目录！");
+			return false;
+		}
+		if (!file.getParentFile().exists()) {// 判断目标文件所在的目录是否存在
+			// 如果目标文件所在的文件夹不存在，则创建父文件夹
+			System.out.println("目标文件所在目录不存在，准备创建它！");
+			if (!file.getParentFile().mkdirs()) {// 判断创建目录是否成功
+				System.out.println("创建目标文件所在的目录失败！");
+				return false;
+			}
+		}
+		try {
+			if (file.createNewFile()) {// 创建目标文件
+				System.out.println("创建文件成功:" + filePath);
+				return true;
+			} else {
+				System.out.println("创建文件失败！");
+				return false;
+			}
+		} catch (IOException e) {// 捕获异常
+			e.printStackTrace();
+			System.out.println("创建文件失败！" + e.getMessage());
+			return false;
+		}
+	}
+	private  ArrayList<String> filtrate(ArrayList<String> filelist)
 	{
 		ArrayList<String>  truemodle=new ArrayList<String>();
 		ArrayList<String> Tempfilelist=new ArrayList<String>();     
 		String[] bArray = {"coroutine.lua","string.lua","table.lua", "math.lua", "io.lua","os.lua","bit.lua","cpu.lua", 
 							"disp.lua", "i2c.lua","pack.lua","pio.lua", "pmd.lua","rtos.lua","uart.lua", "adc.lua", "iconv.lua",
-							"audiocore.lua","zlib.lua","crypto.lua","json.lua","coroutine.lua","table.lua","debug.lua","package.lua","tcpipsock.lua","watchdog.lua"};  
+							"audiocore.lua","zlib.lua","crypto.lua","json.lua","coroutine.lua","table.lua","debug.lua","package.lua",
+							"tcpipsock.lua","watchdog.lua"};  
 		Tempfilelist=(ArrayList<String>) filelist.clone();
 		int flag_Main=0;
 		int copy_num=0;
 		int file_exist_flg=0;
+		String Del_after = null;
 		console.Print("正在检查是否有重复的脚本...");
 		for(String tmp_re:filelist)                        //检查是否有重复的脚本
 		{
@@ -188,12 +309,48 @@ public class ComBin {
 					{
 						copy_num=copy_num+1;
 					}
-
 				}
 			}
 			copy_num=0;
 		}
-		console.Print("正在正在筛选不需要的脚本...");
+		console.Print("正在删除脚本注释..........");
+		for(String tmp:filelist)
+		{
+            ReadFile FILE= new ReadFile(tmp);
+            byte[] Cellbody = new byte[FILE.len()];
+            FILE.read(Cellbody);
+            String t = new String(Cellbody);
+    		//console.Print("文件里寻找require文件:"+tmp);
+			File tempFile2 =new File( tmp.trim());  
+        	String fileName2 = tempFile2.getName(); 
+        	if(t.length()>0)
+        		{
+        			Del_after=Del_Modul_note(t);
+        			if(Del_after.equals(""))
+        			{
+        				console.Print("文件"+fileName2+"注释不对,请检查");  
+        				JOptionPane.showMessageDialog(null, "文件"+fileName2+"注释不对,请检查", "错误", JOptionPane.INFORMATION_MESSAGE);
+        				return null;
+        			}
+        		}	
+        	else
+        		Del_after=t;
+        	System.out.println(work_space_path+"/.metadata/ClearScr/"+fileName2);
+        	createFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
+        	WriteFile file=new WriteFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
+        	file.write(Del_after.getBytes());
+		}
+		
+		filelist=new ArrayList<String>();
+		File file = new File(work_space_path+"/.metadata/ClearScr/");
+		
+        File[] files = file.listFiles();
+        for (File file2 : files) {
+        	filelist.add(file2.getAbsolutePath());
+        }
+        Tempfilelist=(ArrayList<String>) filelist.clone();
+		console.Print("正在筛选不需要的脚本...");
+		
         for(String tmp:filelist){
             //console.Print(tmp);
             ReadFile FILE= new ReadFile(tmp);
@@ -415,20 +572,20 @@ public class ComBin {
 	public void  Merge(boolean hostcompress)
 	{
 		getmsg();
-		String path=work_space_path+"\\"+TempPath;
+		WorkSpace_Path=work_space_path+"\\"+TempPath;
 		String outputname;
 		if(Plat_Type.equals("RDA"))
 			{
 				outputname="Update_Air2xx";
 				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
-				GetALLFile(path);
+				GetALLFile(WorkSpace_Path);
 		        //console.Print(ALLList); 
 		        ALLList=filtrate(ALLList);
 		        if(ALLList ==null)
 		        {
 		        	return ;
 		        }
-		        //console.Print(ALLList); 
+		        console.Print("文件总数："+ALLList.size()); 
 				FileList=ALLList;
 				ALLList=new ArrayList<String>();
 				if(FileList!=null)
@@ -455,7 +612,7 @@ public class ComBin {
 			{
 				outputname="Update_Air8xx";
 				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
-				GetALLFile(path);
+				GetALLFile(WorkSpace_Path);
 		        ALLList=filtrate(ALLList);
 		        if(ALLList ==null)
 		        {
@@ -480,12 +637,12 @@ public class ComBin {
 	public  boolean LodComBin(String platform,boolean hostcompress)
 	{	
 		getmsg();
-		String path=work_space_path+"\\"+TempPath;
-		console.Print("active_project:"+path);
+		WorkSpace_Path=work_space_path+"\\"+TempPath;
+		console.Print("active_project:"+WorkSpace_Path);
 		if(platform.equals("RDA"))
 		{
 			WriteFile file=new WriteFile(work_space_path+"\\RdaCombin.bin");
-			GetALLFile(path);
+			GetALLFile(WorkSpace_Path);
 			ALLList=filtrate(ALLList);
 	        if(ALLList ==null)
 	        {
@@ -517,7 +674,7 @@ public class ComBin {
 		else if(platform.equals("MTK"))
 		{
 			WriteFile file_scr=new WriteFile(work_space_path+"\\CUSTOMER");
-			GetAllScrFile(path);
+			GetAllScrFile(WorkSpace_Path);
 	        ALLList=filtrate(ALLList);
 	        if(ALLList ==null)
 	        {
@@ -534,7 +691,7 @@ public class ComBin {
 				file_scr.close();
 				console.Print("合并脚本完毕"+SrcFileList.toString());
 				WriteFile file_res=new WriteFile(work_space_path+"\\CUSTOMER_RES");
-				GetAllResFile(path);
+				GetAllResFile(WorkSpace_Path);
 				ResFileList=ALLList;
 				ALLList=new ArrayList<String>();
 				if(ResFileList!=null)
