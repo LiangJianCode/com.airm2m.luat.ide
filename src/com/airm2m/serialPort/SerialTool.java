@@ -166,6 +166,7 @@ public class SerialTool {
      * @param serialport 待关闭的串口对象
      */
     public static void closePort(SerialPort serialPort) {
+    	System.out.println("close port");
     	if (serialPort != null) {
     		serialPort.close();
     		serialPort = null;

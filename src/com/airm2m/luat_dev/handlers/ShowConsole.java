@@ -5,9 +5,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
@@ -16,6 +18,8 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.console.IHyperlink;
+
 
 public class ShowConsole {
 	MessageConsole console = null;  
@@ -38,7 +42,7 @@ public class ShowConsole {
         	console = new MessageConsole(CONSOLE_NAME, null);  
         	consoleManager.addConsoles(new IConsole[] { console });
         }
-     
+
         consoleStream = console.newMessageStream();  
 	}
 	/** 
@@ -63,10 +67,27 @@ public class ShowConsole {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+	       
 	        consoleStream.print(message + "\n");  
 	    
 	    }  
 	}  
+	public void ShowUrl(String url)
+	{
+		   String time = new java.util.Date().toString();  
+		   IHyperlink hyperlink;
+
+		   //FileLink fileLink = new FileLink(file, null, 0, 0, 0);
+		   //console.addHyperlink(fileLink, 0, 0);
+		//console.addHyperlink(hyperlink, 0, 3);
+		   //consoleStream.println(time);  
+		   //console.getDocument().set(time+"\n");  
+		  //console.addHyperlink(new MyHyperLink(url), 0, 3);
+		   //MyHyperLink SS=new MyHyperLink(url);
+//		   console.addHyperlink(SS, 0, 3);
+		   //console.addHyperlink(SS, 0, 0);
+		//console.addHyperlink(, 0,3);  
+	}
 	public ShowConsole(String name)
 	{
 		String work_space_path=Platform.getInstanceLocation().getURL().getPath();
@@ -98,6 +119,7 @@ public class ShowConsole {
 	}
 	public void  Print(String message)
 	{
+		
 		printMessage(sf.format(new Date())+"  "+message);
 		System.out.println(sf.format(new Date())+"  "+message);
 	}

@@ -175,14 +175,18 @@ public class OriginalDownload {
 	private  boolean enter_host_mode()
 	{
 		try {
-			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x2a,0x00});
-			write_value(CMD_WR_REG,0x00,  new byte[] {(byte)0x05});
+			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x6a,0x00});
+			write_value(CMD_WR_REG,0x00,  new byte[] {(byte)0x01});
 			Thread.sleep(1000);
-			write_value(CMD_WR_REG,0x03,  new byte[] {(byte)0x80});
+			for(int i=0;i<3;i++)
+			{
+				write_value(CMD_WR_REG,0x03,  new byte[] {(byte)0x80});
+			}
+			
 			write_value(CMD_WR_REG,0x01,  new byte[] {(byte)0x02});
 			write_value(CMD_WR_REG,0x05,  new byte[] {(byte)0xfd});
 			wait_event(0xff000001,2000);
-			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x20,0x00});
+			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x60,0x00});
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
