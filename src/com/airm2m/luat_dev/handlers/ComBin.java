@@ -457,8 +457,8 @@ public class ComBin {
         			Del_after=Del_Modul_note(t);
         			if(Del_after.equals(""))
         			{
-        				console.Print("文件"+fileName2+"注释不对,请检查");  
-        				JOptionPane.showMessageDialog(null, "文件"+fileName2+"注释不对,请检查", "错误", JOptionPane.INFORMATION_MESSAGE);
+        				console.Print("文件"+fileName2+"注释不对,请检查(如果检查没问题,请注意文件结尾要加上回车换行)");  
+        				JOptionPane.showMessageDialog(null, "文件"+fileName2+"注释不对,请检查(如果检查没问题,请注意文件结尾要加上回车换行)", "错误", JOptionPane.INFORMATION_MESSAGE);
         				return null;
         			}
         		}	
