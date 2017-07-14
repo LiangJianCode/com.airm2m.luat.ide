@@ -186,15 +186,78 @@ public class ComBin {
 			return Concat_String(Context,Note_start,Note_end);
 		}
 	}
+	private  int Find_True_Note(String context,int index)
+	{
+		int truestartIndex=0;
+		int startIndex =0;
+		int QuotesIndex=0;
+		int QuotesIndex1=0;
+		int QuotesIndex2=0;	
+		int Quotes_END;
+		startIndex=context.indexOf("--", index);
+		QuotesIndex1=context.indexOf("\"", index);
+		QuotesIndex2=context.indexOf("\'", index);
+		//System.out.println("startIndex:"+startIndex+" QuotesIndex1:"+QuotesIndex1+" QuotesIndex2"+QuotesIndex2);
+		if(QuotesIndex1 ==-1)
+		{
+			QuotesIndex=QuotesIndex2;
+			truestartIndex=2;
+		}
+		else if(QuotesIndex2 == -1)
+		{
+			QuotesIndex=QuotesIndex1;
+			truestartIndex=1;
+		}
+		else if(QuotesIndex1 >QuotesIndex2 )
+		{
+			QuotesIndex=QuotesIndex2;
+			truestartIndex=2;
+		}
+		else if(QuotesIndex2 >QuotesIndex1)
+		{
+			QuotesIndex=QuotesIndex1;
+			truestartIndex=1;
+		}
+		if(startIndex!=-1)            
+		{
+			if(QuotesIndex!=-1 && QuotesIndex<startIndex)
+			{
+				if(truestartIndex==1)
+				{
+					Quotes_END=context.indexOf("\"",QuotesIndex+1);
+					if(Quotes_END==-1)
+					{
+						console.Print("双引号不配对");
+						return -2;                      //双引号不配对
+					}
+				}
+				else
+				{
+					Quotes_END=context.indexOf("\'",QuotesIndex+1);
+					if(Quotes_END==-1)
+					{
+						console.Print("单引号不配对");
+						return -3;                      //单引号不配对
+					}
+				}
+				return Find_True_Note(context,Quotes_END+1);
+			}
+			else
+				return startIndex;
+		}		
+		return -1;
+	}
 	
 	private  String Del_Modul_note(String context)
 	{ 
 		int startIndex =0;
+	
 		String context_temp=context;
-		startIndex=context_temp.indexOf("--", startIndex);
+
+		startIndex=Find_True_Note(context_temp,startIndex);
 		//console.Print("Del_Modul_note");
 		//console.Print(""+startIndex);
-		while (startIndex!=-1)
+		while (startIndex!=-1 && startIndex!=-2 && startIndex!=-3)
 		{
 			
 			context_temp=Del_Note_Handle(context_temp,startIndex);
@@ -203,7 +266,7 @@ public class ComBin {
 				return "";
 			}
 			//console.Print(context_temp);
-			startIndex=context_temp.indexOf("--", 0);
+			startIndex=Find_True_Note(context_temp,0);
 			//console.Print(""+startIndex);
 			//console.Print(temp_modle_name);  
 		}
@@ -275,6 +338,68 @@ public class ComBin {
 			return false;
 		}
 	}
+    public  boolean deleteFile(String fileName) {
+        File file = new File(fileName);
+        // 如果文件路径所对应的文件存在，并且是一个文件，则直接删除
+        if (file.exists() && file.isFile()) {
+            if (file.delete()) {
+                System.out.println("删除单个文件" + fileName + "成功！");
+                return true;
+            } else {
+                System.out.println("删除单个文件" + fileName + "失败！");
+                return false;
+            }
+        } else {
+            System.out.println("删除单个文件失败：" + fileName + "不存在！");
+            return false;
+        }
+    }
+    public  boolean deleteDirectory(String dir) {
+        // 如果dir不以文件分隔符结尾，自动添加文件分隔符
+        if (!dir.endsWith(File.separator))
+            dir = dir + File.separator;
+        File dirFile = new File(dir);
+        // 如果dir对应的文件不存在，或者不是一个目录，则退出
+        if ((!dirFile.exists()) || (!dirFile.isDirectory())) {
+            System.out.println("删除目录失败：" + dir + "不存在！");
+            return false;
+        }
+        boolean flag = true;
+        // 删除文件夹中的所有文件包括子目录
+        File[] files = dirFile.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            // 删除子文件
+            if (files[i].isFile()) {
+                flag = deleteFile(files[i].getAbsolutePath());
+                if (!flag)
+                    break;
+            }
+            // 删除子目录
+            else if (files[i].isDirectory()) {
+                flag = deleteDirectory(files[i].getAbsolutePath());
+                if (!flag)
+                    break;
+            }
+        }
+        if (!flag) {
+            System.out.println("删除目录失败！");
+            return false;
+        }
+        // 删除当前目录
+        if (dirFile.delete()) {
+            System.out.println("删除目录" + dir + "成功！");
+            return true;
+        } else {
+            return false;
+        }
+    }
+	public  boolean deletefilemu(String fileName) {
+	        File file = new File(fileName);
+            if (!file.isFile())
+                 return deleteDirectory(fileName);
+	        return true;
+	    }
+	     
 	private  ArrayList<String> filtrate(ArrayList<String> filelist)
 	{
 		ArrayList<String>  truemodle=new ArrayList<String>();
@@ -314,6 +439,10 @@ public class ComBin {
 			copy_num=0;
 		}
 		console.Print("正在删除脚本注释..........");
+		if(!deletefilemu(work_space_path+"/.metadata/ClearScr/"))
+		{
+			console.Print("删除原有临时文件失败");
+		}
 		for(String tmp:filelist)
 		{
             ReadFile FILE= new ReadFile(tmp);
@@ -494,13 +623,6 @@ public class ComBin {
 		cellhead = cellheadbuff.array();
 		return cellhead;
 	}
-	public void deleteFile(String sPath) {  
-	    File file = new File(sPath);  
-	    // 路径为文件且不为空则进行删除  
-	    if (file.isFile() && file.exists()) {  
-	        file.delete();  
-	    }  
-	} 
 	private void CellBody(String path,WriteFile file,boolean isZIP)
 	{
 		if(isZIP)
