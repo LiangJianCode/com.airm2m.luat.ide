@@ -47,6 +47,7 @@ public class log extends Thread{
 	boolean Log_type=true;
 	static boolean log_status=false;
 	String Log_task="";
+	static boolean mtk_uart_flag=false;
 	private Properties getProperties()
 	{
 		String cfg_file=Platform.getInstanceLocation().getURL().getPath();
@@ -106,11 +107,36 @@ public class log extends Thread{
 	private void log_output_handle(String logs)
 	{
 		int end_flag=0;
+
 		Log_task=Log_task+logs;
 		end_flag=Log_task.indexOf("\r\n", 0);
+		if(logs.indexOf("T0: 0000 0C76\n\rJump to BL")!=1)
+		{
+			mtk_uart_flag=true;
+			Timer timer = new Timer(); 
+			TimerTask task = new TimerTask() {  
+	            @Override  
+	            public void run() {  
+	                // task to run goes here  
+	            	if(mtk_uart_flag)
+	            	{
+	            		console.Print("请在程序加入sys.opntrace(1,1)");
+	            		mtk_uart_flag=false;
+	            	}
+	            	else
+	            		timer.cancel();
+	            }
+	        };  
+	        
+	        long delay = 5 * 1000;  
+	        long intevalPeriod = 5 * 1000;  
+	        // schedules the task to be run in an interval  
+	        timer.scheduleAtFixedRate(task, delay, intevalPeriod);  
+		}
 		//console.Print("~~~~~~~~~~~~~~~~~~"+end_flag+":"+Log_task);
 		while(end_flag!=-1)
 		{
+			mtk_uart_flag=false;
 			console.Print(Log_task.substring(0,end_flag));
 			Log_task=Log_task.substring(end_flag+2);
 			end_flag=Log_task.indexOf("\r\n", 0);
