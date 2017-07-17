@@ -47,7 +47,8 @@ public class log extends Thread{
 	boolean Log_type=true;
 	static boolean log_status=false;
 	String Log_task="";
-	static boolean mtk_uart_flag=false;
+	boolean mtk_uart_flag=false;
+	static Timer timer;
 	private Properties getProperties()
 	{
 		String cfg_file=Platform.getInstanceLocation().getURL().getPath();
@@ -110,33 +111,48 @@ public class log extends Thread{
 
 		Log_task=Log_task+logs;
 		end_flag=Log_task.indexOf("\r\n", 0);
-		if(logs.indexOf("T0: 0000 0C76\n\rJump to BL")!=1)
+		if(logs.indexOf("T0: 0000 0C76\n\rJump to BL\10\13\10\13\109\58\65\59\00")!=1)
 		{
-			mtk_uart_flag=true;
-			Timer timer = new Timer(); 
-			TimerTask task = new TimerTask() {  
-	            @Override  
-	            public void run() {  
-	                // task to run goes here  
-	            	if(mtk_uart_flag)
-	            	{
-	            		console.Print("请在程序加入sys.opntrace(1,1)");
-	            		mtk_uart_flag=false;
-	            	}
-	            	else
-	            		timer.cancel();
-	            }
-	        };  
-	        
-	        long delay = 5 * 1000;  
-	        long intevalPeriod = 5 * 1000;  
-	        // schedules the task to be run in an interval  
-	        timer.scheduleAtFixedRate(task, delay, intevalPeriod);  
+			if(!mtk_uart_flag)
+			{
+				mtk_uart_flag=true;
+				//timer.cancel();
+				timer = new Timer(); 
+				console.Print("开启定时器");
+				TimerTask task = new TimerTask() {  
+		            @Override  
+		            public void run() {  
+		                // task to run goes here  
+		            	if(mtk_uart_flag)
+		            	{
+		            		console.Print("请在程序加入sys.opntrace(ture,1)");
+		            		mtk_uart_flag=false;
+		            		timer.cancel();
+		            	}
+		            	else
+		            		timer.cancel();
+		            }
+		        };  
+		        
+		        long delay = 5 * 1000;  
+		        long intevalPeriod = 5 * 1000;  
+		        // schedules the task to be run in an interval  
+		        timer.scheduleAtFixedRate(task, delay, intevalPeriod);  
+			}
+		}
+		else
+		{
+			if(mtk_uart_flag)
+			{
+				console.Print("取消定时器");
+				timer.cancel();
+				mtk_uart_flag=false;
+			}
+
 		}
 		//console.Print("~~~~~~~~~~~~~~~~~~"+end_flag+":"+Log_task);
 		while(end_flag!=-1)
 		{
-			mtk_uart_flag=false;
 			console.Print(Log_task.substring(0,end_flag));
 			Log_task=Log_task.substring(end_flag+2);
 			end_flag=Log_task.indexOf("\r\n", 0);
