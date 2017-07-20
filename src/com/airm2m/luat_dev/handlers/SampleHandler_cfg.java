@@ -68,6 +68,7 @@ class ShowConfig extends ApplicationWindow {
 	Combo combo_6;
 	
 	String Plat_Type="";
+	String Modle_name="";
 	String Debug_port="";
 	String Port_Type="";
 	String Active_Project="";
@@ -110,10 +111,11 @@ class ShowConfig extends ApplicationWindow {
 			e.printStackTrace();
 		}
 		 Plat_Type=prop1.getProperty("Plat_Type");
+		 Modle_name=prop1.getProperty("Modle_name");
 		 Debug_port=prop1.getProperty("Debug_port");
 		 Active_Project=prop1.getProperty("Active_Project");
 		 Port_Type=prop1.getProperty("Port_Type");
-		 consolew.Print("本地配置项：平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
+		 consolew.Print("本地配置项：模块型号:"+Modle_name+" 平台"+Plat_Type+"   选择项目:"+Active_Project+"   通信端口:"+Debug_port+"   通信类型:"+Port_Type);
 		 try {
 			in.close();
 			out.close();
@@ -140,15 +142,16 @@ class ShowConfig extends ApplicationWindow {
 			}
     	  
 	}
-	private void closeUI(boolean result,String Plat_Type_new,String Debug_port_new,String Active_Project_new,String Port_Type_new)
+	private void closeUI(boolean result,String Plat_Type_new,String Debug_port_new,String Active_Project_new,String Port_Type_new,String modlename)
 	{
 		if(result)
 		{		 
+			prop.setProperty("Modle_name",modlename);
 			prop.setProperty("Plat_Type",Plat_Type_new);
 			prop.setProperty("Debug_port",Debug_port_new);
 			prop.setProperty("Active_Project",Active_Project_new);
 			prop.setProperty("Port_Type",Port_Type_new);
-			consolew.Print("当前配置项：平台"+Plat_Type_new+"   选择项目:"+Active_Project_new+"   通信端口:"+Debug_port_new+"   通信类型:"+Port_Type_new);
+			consolew.Print("当前配置项：模块型号:"+modlename+" 平台"+Plat_Type_new+"   选择项目:"+Active_Project_new+"   通信端口:"+Debug_port_new+"   通信类型:"+Port_Type_new);
 			try {
 				prop.store(oFile, "change file");
 			} catch (IOException e1) {
@@ -211,7 +214,7 @@ class ShowConfig extends ApplicationWindow {
 		button_4.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				closeUI(false,null,null,null,null);
+				closeUI(false,null,null,null,null,null);
 			}
 		});
 		button_4.setBounds(241, 10, 80, 27);
@@ -221,7 +224,7 @@ class ShowConfig extends ApplicationWindow {
 		button_5.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				closeUI(true,"RDA",combo_1.getText(),combo_2.getText(),"host");
+				closeUI(true,"RDA",combo_1.getText(),combo_2.getText(),"host","Air200");
 			}
 		});
 		button_5.setBounds(327, 10, 80, 27);
@@ -256,7 +259,7 @@ class ShowConfig extends ApplicationWindow {
 		button_2.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				closeUI(false,null,null,null,null);
+				closeUI(false,null,null,null,null,null);
 			}
 		});
 		button_2.setBounds(241, 10, 80, 27);
@@ -266,17 +269,17 @@ class ShowConfig extends ApplicationWindow {
 		button_3.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				closeUI(true,"RDA",combo_3.getText(),combo_2.getText(),"uart");
+				closeUI(true,"RDA",combo_3.getText(),combo_2.getText(),"uart","Air200");
 			}
 		});
 		button_3.setBounds(327, 10, 80, 27);
 	}
-	private void air2xx(TabFolder parent)
+	private void air200(TabFolder parent)
 	{
 		
 		
 		TabItem tabItem = new TabItem(parent, SWT.NONE);
-		tabItem.setText("AIR2XX");
+		tabItem.setText("Air200");
 		
 		Group grpAirxx = new Group(parent, SWT.NONE);
 		//grpAirxx.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
@@ -311,15 +314,93 @@ class ShowConfig extends ApplicationWindow {
 			combo_2.setText(Active_Project);
 		combo_2.setBounds(128, 27, 136, 25);
 	}
+	private void host_protocol_new(TabFolder parent,String Modelename)
+	{
+		TabItem tabItem_1 = new TabItem(parent, SWT.NONE);
+		//tabItem_1.addListener(eventType, listener);
+		Combo PortCombo;
+		Combo ProjectCombo;
+		
+		tabItem_1.setText(Modelename);
+
+		
+		Group grpAirxx_1 = new Group(parent, SWT.NONE);
+		//grpAirxx_1.setText("AIR8XX\u914D\u7F6E\u5361");
+		tabItem_1.setControl(grpAirxx_1);
+		
+		Group group_2 = new Group(grpAirxx_1, SWT.NONE);
+		group_2.setText("下载和打印口");
+		group_2.setBounds(10, 110, 416, 111);
+		
+		Group group_7 = new Group(group_2, SWT.NONE);
+		group_7.setText("选择端口");
+		group_7.setBounds(10, 21, 396, 80);
+		
+		PortCombo = new Combo(group_7, SWT.READ_ONLY);
+		for(int i=0;i<Allport.size();i++)
+		{
+			PortCombo.add(Allport.get(i));
+		}
+		if(Debug_port!=null && Modle_name.equals(Modelename))
+			PortCombo.setText(Debug_port);
+		PortCombo.setBounds(133, 38, 136, 25);
+		
+		Group group_6 = new Group(grpAirxx_1, SWT.NONE);
+		group_6.setBounds(10, 27, 396, 77);
+		group_6.setText("选择工程");
+		
+		ProjectCombo = new Combo(group_6, SWT.READ_ONLY);
+		for(int i=0;i<ProjectList.size();i++)
+		{
+			ProjectCombo.add(ProjectList.get(i));
+		}
+
+		if(Active_Project!=null && Modle_name.equals(Modelename))
+			ProjectCombo.setText(Active_Project);
+		ProjectCombo.setBounds(144, 28, 136, 25);
+		
+		Composite composite = new Composite(grpAirxx_1, SWT.NONE);
+		composite.setBounds(0, 227, 426, 42);
+		
+		Button button = new Button(composite, SWT.NONE);
+		button.setBounds(241, 10, 80, 27);
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				closeUI(false,null,null,null,null,null);
+			}
+		});
+		button.setText("取消");
+		
+		Button button_1 = new Button(composite, SWT.NONE);
+		button_1.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				consolew.Print("COM:"+PortCombo.getText());
+				closeUI(true,"RDA",PortCombo.getText(),ProjectCombo.getText(),"host",Modelename);
+			}
+		});
+		button_1.setBounds(327, 10, 80, 27);
+		button_1.setText("确定");
+	}
+	private void air202(TabFolder parent)
+	{
+		host_protocol_new(parent,"Air202");
+	}
+	private void air800(TabFolder parent)
+	{
+		host_protocol_new(parent,"Air800");
+	}
+
 	
-	private void air8xx(TabFolder parent)
+	private void air810(TabFolder parent)
 	{
 
 		TabItem tabItem_1 = new TabItem(parent, SWT.NONE);
 		//tabItem_1.addListener(eventType, listener);
 
 		
-		tabItem_1.setText("AIR8XX");
+		tabItem_1.setText("Air810");
 
 		
 		Group grpAirxx_1 = new Group(parent, SWT.NONE);
@@ -365,7 +446,7 @@ class ShowConfig extends ApplicationWindow {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				closeUI(false,null,null,null,null);
+				closeUI(false,null,null,null,null,null);
 			}
 		});
 		button.setText("取消");
@@ -374,12 +455,13 @@ class ShowConfig extends ApplicationWindow {
 		button_1.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				closeUI(true,"MTK",combo_5.getText(),combo_4.getText(),"uart");
+				closeUI(true,"MTK",combo_5.getText(),combo_4.getText(),"uart","Air810");
 			}
 		});
 		button_1.setBounds(327, 10, 80, 27);
 		button_1.setText("确定");
 	}
+
 	@Override
 	protected Control createContents(Composite parent) {
 		//shell = new Shell();
@@ -392,19 +474,49 @@ class ShowConfig extends ApplicationWindow {
 
 		TabFolder tabFolder = new TabFolder(composite_1, SWT.NONE);
 		tabFolder.setBounds(0, 0, 434, 310);
-		if(Plat_Type==null || Plat_Type.equals("RDA"))
+		if(Modle_name==null)
 		{
-			air2xx(tabFolder);
-			air8xx(tabFolder);
+			air202(tabFolder);
+			air200(tabFolder);
+			air800(tabFolder);
+			air810(tabFolder);
+		}
+		else if(Modle_name.equals("Air202"))
+		{
+			air202(tabFolder);
+			air200(tabFolder);
+			air800(tabFolder);
+			air810(tabFolder);
+		}
+		else if(Modle_name.equals("Air200"))
+		{
+			air200(tabFolder);
+			air202(tabFolder);
+			air800(tabFolder);
+			air810(tabFolder);
+		}
+		else if(Modle_name.equals("Air800"))
+		{
+			air800(tabFolder);
+			air200(tabFolder);
+			air202(tabFolder);
+			air810(tabFolder);
+		}
+		else if(Modle_name.equals("Air810"))
+		{
+			air810(tabFolder);
+			air200(tabFolder);
+			air202(tabFolder);
+			air800(tabFolder);
 		}
 		else
 		{
-			air8xx(tabFolder);
-			air2xx(tabFolder);
+			air202(tabFolder);
+			air200(tabFolder);
+			air800(tabFolder);
+			air810(tabFolder);
 		}
 		return button_1;
-	
-
 	}
 	
 	/**
@@ -547,7 +659,7 @@ class cfg_thread
 			if(allPort.size()==1)
 				console.Print("\r\n**********************提示**********************\r\n   请查看设备管理器中是否有此端口\r\n 1:如果有此端口,请在设备管理器中针对该端口右击禁用再右击启用,\r\n 2:如果没有这个端口,请确保是否安装串口驱动\r\n 3:Air810用户请注意,请使用UART1或者UART3下载脚本(USB口不能单独下载脚本!)");
 			else
-				console.Print("\r\n**********************提示**********************\r\n   如果显示的端口号和设备管理器上显示的端口号不一致,请在设备管理器中针对该端口右击禁用再右击启用");
+				console.Print("\r\n**********************提示**********************\r\n   如果显示的端口号和设备管理器上显示的端口号不一致,请在设备管理器中针对该端口右击禁用再右击启用,\r\n如果是810用户，请注意用uart口下载脚本(如果没有安装驱动请安装驱动),\r\n");
 			window1.AddStartMsg(allPort,workSpace,FileList,window1,console);
 			window1.setBlockOnOpen(true);
 			window1.open();
