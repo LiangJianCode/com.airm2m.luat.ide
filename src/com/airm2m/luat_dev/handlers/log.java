@@ -111,7 +111,7 @@ public class log extends Thread{
 
 		Log_task=Log_task+logs;
 		end_flag=Log_task.indexOf("\r\n", 0);
-		if(logs.indexOf("T0: 0000 0C76\n\rJump to BL\10\13\10\13\109\58\65\59\00")!=1)
+		if(Log_task.indexOf("T0: 0000 0C76\n\rJump to BL")!=-1)
 		{
 			if(!mtk_uart_flag)
 			{
@@ -139,6 +139,12 @@ public class log extends Thread{
 		        // schedules the task to be run in an interval  
 		        timer.scheduleAtFixedRate(task, delay, intevalPeriod);  
 			}
+			else
+			{
+				timer.cancel();
+				mtk_uart_flag=false;
+
+			}
 		}
 		else
 		{
@@ -148,7 +154,6 @@ public class log extends Thread{
 				timer.cancel();
 				mtk_uart_flag=false;
 			}
-
 		}
 		//console.Print("~~~~~~~~~~~~~~~~~~"+end_flag+":"+Log_task);
 		while(end_flag!=-1)
