@@ -151,7 +151,7 @@ public class ComBin {
 	{
 		int Note_end=0;
 	
-		if(Context.substring(Note_start+2,Note_start+8).equals("[====["))
+		if( (Context.length()>= (Note_start+8)) && Context.substring(Note_start+2,Note_start+8).equals("[====["))
 		{
 			//console.Print("--[====[");
 			Note_end= Context.indexOf("]====]", Note_start);
@@ -162,7 +162,7 @@ public class ComBin {
 			//console.Print(""+Note_end);
 			return Concat_String(Context,Note_start,Note_end+6);
 		}
-		else if(Context.substring(Note_start+2,Note_start+4).equals("[["))
+		else if((Context.length()>= (Note_start+4)) && Context.substring(Note_start+2,Note_start+4).equals("[["))
 		{
 			//console.Print("--[[");
 			Note_end= Context.indexOf("]]", Note_start);
@@ -259,7 +259,7 @@ public class ComBin {
 		//console.Print(""+startIndex);
 		while (startIndex!=-1 && startIndex!=-2 && startIndex!=-3)
 		{
-			
+			//System.out.println("context_temp: "+context_temp+" startIndex: "+startIndex);
 			context_temp=Del_Note_Handle(context_temp,startIndex);
 			if(context_temp.equals(""))
 			{
@@ -398,7 +398,7 @@ public class ComBin {
             if (!file.isFile())
                  return deleteDirectory(fileName);
 	        return true;
-	    }
+	}
 	     
 	private  ArrayList<String> filtrate(ArrayList<String> filelist)
 	{
@@ -452,6 +452,7 @@ public class ComBin {
     		//console.Print("文件里寻找require文件:"+tmp);
 			File tempFile2 =new File( tmp.trim());  
         	String fileName2 = tempFile2.getName(); 
+        	System.out.println(work_space_path+"/.metadata/ClearScr/"+fileName2);
         	if(t.length()>0)
         		{
         			Del_after=Del_Modul_note(t);
@@ -464,7 +465,7 @@ public class ComBin {
         		}	
         	else
         		Del_after=t;
-        	System.out.println(work_space_path+"/.metadata/ClearScr/"+fileName2);
+        	
         	createFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
         	WriteFile file=new WriteFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
         	file.write(Del_after.getBytes());
@@ -482,12 +483,22 @@ public class ComBin {
 		
         for(String tmp:filelist){
             //console.Print(tmp);
-            ReadFile FILE= new ReadFile(tmp);
-            byte[] Cellbody = new byte[FILE.len()];
-            FILE.read(Cellbody);
-            String t = new String(Cellbody);
-    		//console.Print("文件里寻找require文件:"+tmp);
-            GetModul(t,truemodle);
+        	File tempFile5 =new File( tmp.trim());  
+            String fileName5 = tempFile5.getName();  
+            if(fileName5.indexOf(".lua",-3)!=-1)
+            {
+	        	ReadFile FILE= new ReadFile(tmp);
+	            byte[] Cellbody = new byte[FILE.len()];
+	            FILE.read(Cellbody);
+	            String t = new String(Cellbody);
+	    		//console.Print("文件里寻找require文件:"+tmp);
+	            GetModul(t,truemodle);
+            }
+            else
+            {
+            	System.out.println("lua 外文件"+fileName5);
+            	truemodle.add(fileName5);   //如果不是.lua文件，就直接添加入fileName5
+            }
         } 
         console.Print("正在检查是否和扩展库重名...");
         for(String tem1:filelist)
@@ -568,7 +579,7 @@ public class ComBin {
                     	}
                         } 
                 	else {
-	                	if(!file2.getName().equals(".buildpath") && !file2.getName().equals(".project"))
+	                	if(!file2.getName().equals(".buildpath") && !file2.getName().equals(".project")&& !file2.getName().equals(".classpath"))
 	                	{
 	                		//console.Print("file add :"+file2.getName());
 	                		ALLList.add(file2.getAbsolutePath());
@@ -698,10 +709,9 @@ public class ComBin {
 		String outputname;
 		if(Plat_Type.equals("RDA"))
 			{
-				outputname="Update_Air2xx";
+				outputname="Update_RDA";
 				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
 				GetALLFile(WorkSpace_Path);
-		        //console.Print(ALLList); 
 		        ALLList=filtrate(ALLList);
 		        if(ALLList ==null)
 		        {
@@ -732,7 +742,7 @@ public class ComBin {
 			}
 		else
 			{
-				outputname="Update_Air8xx";
+				outputname="Update_MTK";
 				WriteFile file=new WriteFile(work_space_path+"\\"+outputname);
 				GetALLFile(WorkSpace_Path);
 		        ALLList=filtrate(ALLList);
