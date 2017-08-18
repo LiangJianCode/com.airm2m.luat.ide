@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -399,7 +400,30 @@ public class ComBin {
                  return deleteDirectory(fileName);
 	        return true;
 	}
-	     
+ public  static void Copy(String     oldPath,     String     newPath)    
+   {    
+          try     {    
+                  int     bytesum     =     0;    
+                  int     byteread     =     0;    
+                  File     oldfile     =     new     File(oldPath);    
+                  if     (oldfile.exists())     {      
+                          InputStream     inStream     =     new     FileInputStream(oldPath);     
+                          FileOutputStream     fs     =     new     FileOutputStream(newPath);    
+                          byte[]     buffer     =     new     byte[1444];    
+                          int     length;    
+                          while     (     (byteread     =     inStream.read(buffer))     !=     -1)     {    
+                                  bytesum     +=     byteread;        
+                                  System.out.println(bytesum);    
+                                  fs.write(buffer,     0,     byteread);    
+                          }    
+                          inStream.close();    
+                  }    
+          }    
+          catch     (Exception     e)     {    
+                  System.out.println( "error  ");    
+                  e.printStackTrace();    
+          }    
+    }      
 	private  ArrayList<String> filtrate(ArrayList<String> filelist)
 	{
 		ArrayList<String>  truemodle=new ArrayList<String>();
@@ -452,23 +476,30 @@ public class ComBin {
     		//console.Print("文件里寻找require文件:"+tmp);
 			File tempFile2 =new File( tmp.trim());  
         	String fileName2 = tempFile2.getName(); 
-        	System.out.println(work_space_path+"/.metadata/ClearScr/"+fileName2);
-        	if(t.length()>0)
-        		{
-        			Del_after=Del_Modul_note(t);
-        			if(Del_after.equals(""))
-        			{
-        				console.Print("文件"+fileName2+"注释不对,请检查(如果检查没问题,请注意文件结尾要加上回车换行)");  
-        				JOptionPane.showMessageDialog(null, "文件"+fileName2+"注释不对,请检查(如果检查没问题,请注意文件结尾要加上回车换行)", "错误", JOptionPane.INFORMATION_MESSAGE);
-        				return null;
-        			}
-        		}	
-        	else
-        		Del_after=t;
-        	
-        	createFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
-        	WriteFile file=new WriteFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
-        	file.write(Del_after.getBytes());
+            if(fileName2.indexOf(".lua",-3)!=-1)
+            {
+	        	System.out.println(work_space_path+"/.metadata/ClearScr/"+fileName2);
+	        	if(t.length()>0)
+	        		{
+	        			Del_after=Del_Modul_note(t);
+	        			if(Del_after.equals(""))
+	        			{
+	        				console.Print("文件"+fileName2+"注释不对,请检查(如果检查没问题,请注意文件结尾要加上回车换行)");  
+	        				JOptionPane.showMessageDialog(null, "文件"+fileName2+"注释不对,请检查(如果检查没问题,请注意文件结尾要加上回车换行)", "错误", JOptionPane.INFORMATION_MESSAGE);
+	        				return null;
+	        			}
+	        		}	
+	        	else
+	        		Del_after=t;
+	        	
+	        	createFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
+	        	WriteFile file=new WriteFile(work_space_path+"/.metadata/ClearScr/"+fileName2);
+	        	file.write(Del_after.getBytes());
+            }
+            else
+            {
+            	Copy(tmp,work_space_path+"/.metadata/ClearScr/"+fileName2);
+            }
 		}
 		
 		filelist=new ArrayList<String>();
