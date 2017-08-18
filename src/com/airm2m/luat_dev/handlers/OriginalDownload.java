@@ -172,7 +172,7 @@ public class OriginalDownload {
 	    write_value(CMD_WR_REG, CTRL_SET_REG, new byte[] {(byte) 0x08});
 	    write_value(CMD_WR_REG, CTRL_CFG_REG, new byte[] {(byte) 0x80});
 	}
-	private  boolean enter_host_mode()
+	private  boolean enter_host_mode(int chip_type)
 	{
 		try {
 			write_value(CMD_WR_DWORD,0x01a000a0,  new byte[] {(byte)0x00,0x00,0x6a,0x00});
@@ -285,7 +285,9 @@ public class OriginalDownload {
 	}
 	private int  read_chip_id()
 	{
-		return read_value(CMD_RD_DWORD, 0x01a24000,2000);
+		int value=read_value(CMD_RD_DWORD,0x01A24000,300);
+		value=(value>>16)&(0x0000ffff);
+		return value;
 	}
 	private boolean read_scr_are()
 	{
@@ -753,13 +755,14 @@ public class OriginalDownload {
 		console.Print("等待握手......................");
 		//System.out.println("等待握手");
 		int i=0;
-		for(i=0;i<100;i++)
+		for(i=0;i<200;i++)
 		{
 			int value=read_value(CMD_RD_DWORD,0x01A24004,200);
 			//read_value(CMD_RD_DWORD,0x01A24004);
 			if(value==0x10090911 || value == 0x09120711 || value == 0xFFFFFFFF || value ==0x10220027)
 			{
 				console.Print("握手成功");
+
 				return value;
 			}
 			if(DownlodState==false)
@@ -771,6 +774,7 @@ public class OriginalDownload {
 		console.Print("如果是Air200 S1开发板，电源拨杆开关打到ON，按reset键，即可触发下载流程。如果此时已经是开机状态，则按下reset即可触发下载流程。");
 		console.Print("如果是Air200 S3开发板，直接上电即可触发下载。如果此时已经是开机状态，则重新上电即可触发下载。");
 		console.Print("如果是Air202 S5开发板，电源拨杆开关打到ON,再按PWER_KEY两秒可触发下载。");
+		console.Print("如果是Air800 M5开发板，电源拨杆开关打到ON,再按PWER_KEY两秒可触发下载。");
 		JOptionPane.showMessageDialog(null, "请确保设备处于唤醒状态(可以通过重新上电实现)", "错误", JOptionPane.INFORMATION_MESSAGE);
 		return 0;
 
@@ -783,25 +787,25 @@ public class OriginalDownload {
 		List<byte[]> unpackRam;
 		if(DownPort==null)
 			return false;
-		int chip_id=SEND_DL_SYNC();
-		if(chip_id!=0)
-		{
+		if(SEND_DL_SYNC()!=0)
+		{	
+			int chip_id=read_chip_id();
 			chip_xfbp();
-			if(enter_host_mode())
+			if(enter_host_mode(chip_id))
 				{
 					if(DownlodState==false)
 					{
 						return false;
 					}
-					if(chip_id == 0x10090911)
+					if(chip_id == 0x8809)
 					{
 						unpackRam=UnpackRamrun(RamrunpPath+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod");
-						console.Print("该芯片是:AIR200");
+						console.Print("该芯片是:8851");
 					}
-					else if(chip_id == 0x10220027)
+					else if(chip_id == 0x809)
 					{
 						unpackRam=UnpackRamrun(RamrunpPath+"\\ramrun\\flsh_spi32m_8955_ramrun.lod");
-						console.Print("该芯片是:AIR202");
+						console.Print("该芯片是:8955");
 					}
 					else
 					{
