@@ -774,7 +774,7 @@ public class OriginalDownload {
 		console.Print("如果是Air200 S1开发板，电源拨杆开关打到ON，按reset键，即可触发下载流程。如果此时已经是开机状态，则按下reset即可触发下载流程。");
 		console.Print("如果是Air200 S3开发板，直接上电即可触发下载。如果此时已经是开机状态，则重新上电即可触发下载。");
 		console.Print("如果是Air202 S5开发板，电源拨杆开关打到ON,再按PWER_KEY两秒可触发下载。");
-		console.Print("如果是Air800 M5开发板，电源拨杆开关打到ON,再按PWER_KEY两秒可触发下载。");
+		console.Print("如果是Air800 M4开发板，电源拨杆开关打到ON,再按PWER_KEY两秒可触发下载。");
 		JOptionPane.showMessageDialog(null, "请确保设备处于唤醒状态(可以通过重新上电实现)", "错误", JOptionPane.INFORMATION_MESSAGE);
 		return 0;
 
