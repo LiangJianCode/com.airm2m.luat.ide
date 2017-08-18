@@ -800,12 +800,12 @@ public class OriginalDownload {
 					if(chip_id == 0x8809)
 					{
 						unpackRam=UnpackRamrun(RamrunpPath+"\\ramrun\\flsh_spi32m_CUSTOMER_host_ramrun.lod");
-						console.Print("该芯片是:8851");
+						console.Print("该芯片是:RDA8851");
 					}
-					else if(chip_id == 0x809)
+					else if(chip_id == 0x809c)
 					{
 						unpackRam=UnpackRamrun(RamrunpPath+"\\ramrun\\flsh_spi32m_8955_ramrun.lod");
-						console.Print("该芯片是:8955");
+						console.Print("该芯片是:RDA8955");
 					}
 					else
 					{
