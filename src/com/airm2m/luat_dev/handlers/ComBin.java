@@ -604,7 +604,7 @@ public class ComBin {
             } else {
                 for (File file2 : files) {
                     if (file2.isDirectory()) {
-                    	if(!file2.getName().equals(".settings"))
+                    	if(!file2.getName().equals(".settings") && !file2.getName().equals(".svn")&& !file2.getName().equals(".git")&& !file2.getName().equals(".idea"))
                     	{
                     		GetALLFile(file2.getAbsolutePath());
                     	}
